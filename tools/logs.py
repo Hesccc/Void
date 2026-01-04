@@ -2,7 +2,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-def logs_configuration(log_file=None, class_name='VoidLogger'):
+def logs_configuration(log_file=None, class_name='Void'):
     if log_file is None:
         log_file = os.getenv('LOG_PATH', 'logs/Void.log')
         

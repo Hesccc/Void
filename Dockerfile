@@ -13,7 +13,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     # 配置文件的默认路径，配合 entrypoint.sh 使用
     CONFIG_PATH="/app/config/config.yaml" \
     # 日志文件路径，暴露到 config 目录
-    LOG_PATH="/app/config/logs/unseeded-file-remover.log"
+    LOG_PATH="/app/config/logs/Void.log"
 
 # 设置工作目录
 WORKDIR /app
