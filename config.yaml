@@ -1,0 +1,45 @@
+# 全局设置：执行频率、通知配置、文件大小阈值、排除路径等
+check_interval: 60              # 任务执行频率(分钟)，默认执行频率为：60分钟。例如：60：每小时执行一次；720：每12小时执行一次，1440：每天执行一次
+enable_auto_remove: False       # 是否启用自动删除，True，False表示禁用(禁用只发送检查通知)
+notification_type: "webhook"    # 通知类型：email 或 webhook
+checkfile_size: 0               # 文件大小阈值(MB)，仅删除大于等于该值的未做种文件。设置为0则不限制文件大小。例如：50表示50MB， 0表示不限制
+excluded_paths: []              # 排除路径列表,不支持通配符需要填写完整路径；默认无设置排除目录
+
+# 排除路径列表配置示例
+# excluded_paths:
+    # - "/data/important/"
+    # - "/data/movies/exclude_this_folder/"
+
+notification:
+  email:
+    smtp_host: "smtp.example.com"     # SMTP服务器地址
+    smtp_port: 465                    # 端口 (SSL一般为465)
+    username: "send@example.com"      # 发件人邮箱地址
+    password: "xxxxxxx"               # 邮箱授权码
+    to: "to@example.com"              # 收件人地址
+    
+  webhook:
+    url: "https://example.com/webhook"  # Webhook URL
+
+
+# PT下载器配置，支持多个PT下载器
+services:
+  - name: "QB02"
+    type: "qbittorrent"
+    host: "127.0.0.1"
+    port: 8080
+    username: "admin"
+    password: "example"
+    path_mapping:
+      - "/data": "/data"
+
+
+# 示例配置
+#   - name: "TR01"                 # 服务名称
+#     type: "transmission"         # 服务类型：qbittorrent 或 transmission
+#     host: "127.0.0.1"            # PT下载器服务地址，确保容器内能访问
+#     port: 9091                   # 服务端口
+#     username: "admin"            # 登录用户名
+#     password: "admin"            # 登录密码
+#     path_mapping:                # 映射路径关系
+#       "/downloads": "/data"

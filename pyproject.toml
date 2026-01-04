@@ -1,0 +1,12 @@
+[project]
+name = "Void"
+version = "2.0.1"
+description = "一款用于自动清理 PT/BT 下载目录中未做种（冗余）文件的工具。它会通过 API 连接下载客户端（qBittorrent/Transmission），获取所有当前正在做种的文件列表，并与本地下载目录进行比对，自动删除那些不在做种列表中的文件和空文件夹，帮助你释放磁盘空间。"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.3.3",
+    "pyyaml>=6.0.3",
+    "qbittorrent-api==2025.7.0",
+    "schedule>=1.2.2",
+    "transmission-rpc==8.0.0a4",
+]

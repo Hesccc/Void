@@ -1,0 +1,11 @@
+services:
+  unseeded-file-remover:
+    image: hescc/unseeded-file-remover:latest
+    container_name: unseeded-file-remover
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./config:/app/config 
+      - /data:/data
