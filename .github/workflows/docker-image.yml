@@ -33,5 +33,5 @@ jobs:
         push: true
         # 替换 <YOUR_USERNAME> 和 <YOUR_REPO> 为你的实际名称
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/Void:latest
-          ${{ secrets.DOCKERHUB_USERNAME }}/Void:${{ github.sha }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/void:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/void:${{ github.sha }}
