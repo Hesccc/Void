@@ -38,6 +38,7 @@ services:
   Void:
     image: hescc/void:latest
     container_name: void
+    network_mode: host
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai # 设置容器时区为上海

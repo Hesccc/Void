@@ -1,7 +1,7 @@
 services:
-  unseeded-file-remover:
-    image: hescc/unseeded-file-remover:latest
-    container_name: unseeded-file-remover
+  void:
+    image: hescc/void:latest
+    container_name: void
     network_mode: host
     restart: unless-stopped
     environment:
