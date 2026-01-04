@@ -10,21 +10,20 @@ excluded_paths: []              # 排除路径列表,不支持通配符需要填
     # - "/data/important/"
     # - "/data/movies/exclude_this_folder/"
 
-notification:
-  email:
-    smtp_host: "smtp.example.com"     # SMTP服务器地址
-    smtp_port: 465                    # 端口 (SSL一般为465)
-    username: "send@example.com"      # 发件人邮箱地址
-    password: "xxxxxxx"               # 邮箱授权码
-    to: "to@example.com"              # 收件人地址
-    
-  webhook:
-    url: "https://example.com/webhook"  # Webhook URL
+email:
+  smtp_host: "smtp.example.com"     # SMTP服务器地址
+  smtp_port: 465                    # 端口 (SSL一般为465)
+  username: "send@example.com"      # 发件人邮箱地址
+  password: "xxxxxxx"               # 邮箱授权码
+  to: "to@example.com"              # 收件人地址
+
+webhook:
+  url: "https://example.com/webhook"  # Webhook URL
 
 
 # PT下载器配置，支持多个PT下载器
 services:
-  - name: "QB02"
+  - name: "QB01"
     type: "qbittorrent"
     host: "127.0.0.1"
     port: 8080
