@@ -113,7 +113,7 @@ services:
     path_mapping:
       - "/data": "/data"
 
-### 示例配置
+#### 示例配置
 #   - name: "TR01"                 # 服务名称
 #     type: "transmission"         # 服务类型：qbittorrent 或 transmission
 #     host: "127.0.0.1"            # PT下载器服务地址，确保容器内能访问
