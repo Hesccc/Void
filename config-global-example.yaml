@@ -1,0 +1,101 @@
+# =================================================================
+# Void 全局扫描模式配置文件
+# =================================================================
+# 
+# 使用场景：
+# - 一个共享目录包含多个下载器的文件
+# - 需要检查文件是否在任意一个下载器中做种
+# - 只有不在所有下载器中的文件才会被删除
+#
+# 与普通模式的区别：
+# - 普通模式(main.py): 每个下载器独立扫描自己的目录
+# - 全局模式(main_global.py): 扫描共享目录，跨所有下载器检查
+# =================================================================
+
+# =================================================================
+# 全局设置
+# =================================================================
+check_interval: 60              # 任务执行频率(分钟)
+enable_auto_remove: False       # 是否启用自动删除
+notification_type: "webhook"    # 通知类型：email 或 webhook
+checkfile_size: 50              # 文件大小阈值(MB)
+excluded_paths: []              # 排除路径列表
+
+# =================================================================
+# 全局扫描配置（新增）
+# =================================================================
+global_scan:
+  enabled: True                 # 是否启用全局扫描模式
+  scan_paths:                   # 要扫描的目录列表
+    - "/data"                   # Linux 示例
+    # - "T:\\"                  # Windows 示例（注意双反斜杠）
+    # - "D:\\Downloads"         # 可以配置多个目录
+
+# =================================================================
+# 通知配置
+# =================================================================
+email:
+  smtp_host: "smtp.example.com"
+  smtp_port: 465
+  username: "send@example.com"
+  password: "xxxxxxx"
+  to: "to@example.com"
+
+webhook:
+  url: "https://example.com/webhook"
+
+# =================================================================
+# PT下载器配置（全局扫描模式下会检查所有配置的下载器）
+# =================================================================
+services:
+  # 第一个 qBittorrent 实例
+  - name: "QB01"
+    type: "qbittorrent"
+    host: "127.0.0.1"
+    port: 8080
+    username: "admin"
+    password: "password1"
+    path_mapping:
+      - "/data": "/downloads"   # 容器路径映射到本地路径
+
+  # 第二个 qBittorrent 实例
+  - name: "QB02"
+    type: "qbittorrent"
+    host: "192.168.1.100"
+    port: 8080
+    username: "admin"
+    password: "password2"
+    path_mapping:
+      - "/data": "/data"
+
+  # Transmission 实例
+  - name: "TR01"
+    type: "transmission"
+    host: "192.168.1.101"
+    port: 9091
+    username: "admin"
+    password: "password3"
+    path_mapping:
+      - "/data": "/downloads"
+
+# =================================================================
+# Windows 环境配置示例
+# =================================================================
+# services:
+#   - name: "QB-Local"
+#     type: "qbittorrent"
+#     host: "127.0.0.1"
+#     port: 8080
+#     username: "admin"
+#     password: "admin"
+#     path_mapping:
+#       - "T:\\": "/download"
+#
+#   - name: "QB-Remote"
+#     type: "qbittorrent"
+#     host: "10.10.0.100"
+#     port: 8080
+#     username: "admin"
+#     password: "admin"
+#     path_mapping:
+#       - "T:\\": "/data"

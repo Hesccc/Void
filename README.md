@@ -121,7 +121,7 @@ services:
 
 # Linux 环境示例
 #   - name: "TR01"                 # 服务名称
-#     type: "transmission"         # 服务类型：qbittorrent 或 transmission
+#     type: "transmission"         # 服务类型: qbittorrent 或 transmission
 #     host: "127.0.0.1"            # PT下载器服务地址，确保容器内能访问
 #     port: 9091                   # 服务端口
 #     username: "admin"            # 登录用户名
