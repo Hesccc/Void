@@ -5,7 +5,10 @@
 - docker hub仓库：[https://hub.docker.com/repository/docker/hescc/unseeded-file-remover/general](https://hub.docker.com/r/hescc/unseeded-file-remover)
 - github仓库：[https://github.com/Hesccc/unseeded-file-remover](https://github.com/Hesccc/unseeded-file-remover)
 
-参考蜂巢论坛中的帖子Python代码：https://pting.club/d/1840
+借鉴蜂巢论坛[PT工具：找到硬盘里没有被做种的文件](https://pting.club/d/1840) 文章中的Python代码。
+再此基础上添加：扫描结果通知、定时执行、自动删除、Docker封装
+
+> 使用须知：目前只再Linux + qBittorrent环境中进行过测试，建议先不启动自动删除功能。
 
 ## ✨ 主要特性
 
@@ -90,15 +93,15 @@ excluded_paths: []            # 排除路径列表,不支持通配符需要填�
     # - "/data/important/"
     # - "/data/movies/exclude_this_folder/"
 
-notification:
-  email:
-    smtp_host: "smtp.example.com"     # SMTP服务器地址
-    smtp_port: 465                    # 端口 (SSL一般为465)
-    username: "send@example.com"      # 发件人邮箱地址
-    password: "xxxxxxx"               # 邮箱授权码
-    to: "to@example.com"              # 收件人地址
-  webhook:
-    url: "https://example.com/webhook"  # Webhook URL
+email:
+  smtp_host: "smtp.example.com"     # SMTP服务器地址
+  smtp_port: 465                    # 端口 (SSL一般为465)
+  username: "send@example.com"      # 发件人邮箱地址
+  password: "xxxxxxx"               # 邮箱授权码
+  to: "to@example.com"              # 收件人地址
+
+webhook:
+  url: "https://example.com/webhook"  # Webhook URL
 
 
 # =================================================================
