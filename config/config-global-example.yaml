@@ -17,7 +17,7 @@
 # =================================================================
 check_interval: 60              # 任务执行频率(分钟)
 enable_auto_remove: False       # 是否启用自动删除
-notification_type: "webhook"    # 通知类型：email 或 webhook
+notification_type: "wecom"    # 通知类型：email、webhook、wecom（企业微信）
 checkfile_size: 50              # 文件大小阈值(MB)
 excluded_paths: []              # 排除路径列表
 
@@ -43,6 +43,9 @@ email:
 
 webhook:
   url: "https://example.com/webhook"
+
+wecom:
+  url: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY_HERE"
 
 # =================================================================
 # PT下载器配置（全局扫描模式下会检查所有配置的下载器）

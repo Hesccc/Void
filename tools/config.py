@@ -7,8 +7,9 @@ from tools import logs
 logger = logs.logs_configuration()
 
 def yaml_configuration():
-    # 建议使用绝对路径或环境变量，防止 Docker 工作目录切换导致找不到文件
-    config_file = os.getenv("CONFIG_PATH", "./config.yaml")
+    # 默认配置文件路径：config/config.yaml
+    # 可通过环境变量 CONFIG_PATH 覆盖
+    config_file = os.getenv("CONFIG_PATH", "./config/config.yaml")
     
     try:
         with open(config_file, 'r', encoding='utf-8') as f:

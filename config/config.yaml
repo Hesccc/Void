@@ -1,7 +1,7 @@
 # 全局设置：执行频率、通知配置、文件大小阈值、排除路径等
 check_interval: 60              # 任务执行频率(分钟)，默认执行频率为：60分钟。例如：60：每小时执行一次；720：每12小时执行一次，1440：每天执行一次
 enable_auto_remove: False       # 是否启用自动删除，True，False表示禁用(禁用只发送检查通知)
-notification_type: "webhook"    # 通知类型：email 或 webhook
+notification_type: "webhook"    # 通知类型：email、webhook、wecom（企业微信）
 checkfile_size: 0               # 文件大小阈值(MB)，仅删除大于等于该值的未做种文件。设置为0则不限制文件大小。例如：50表示50MB， 0表示不限制
 excluded_paths: []              # 排除路径列表,不支持通配符需要填写完整路径；默认无设置排除目录
 
@@ -11,14 +11,17 @@ excluded_paths: []              # 排除路径列表,不支持通配符需要填
     # - "/data/movies/exclude_this_folder/"
 
 email:
-  smtp_host: "smtp.example.com"     # SMTP服务器地址
+  smtp_host: "smtp.qq.com"     # SMTP服务器地址
   smtp_port: 465                    # 端口 (SSL一般为465)
-  username: "send@example.com"      # 发件人邮箱地址
-  password: "xxxxxxx"               # 邮箱授权码
-  to: "to@example.com"              # 收件人地址
+  username: "mr.hesc@qq.com"      # 发件人邮箱地址
+  password: "icuymthbmwklbbed"               # 邮箱授权码
+  to: "mr.hesc@outlook.com"              # 收件人地址
 
 webhook:
-  url: "https://moviepilot.hesc.info/api/v1/plugin/MsgNotify/send_json?apikey=L4JxAu7j35EsD9FConECNw"  # Webhook URL
+  url: "http://10.10.0.241:8081/api/v1/plugin/MsgNotify/send_json?apikey=L4JxAu7j35EsD9FConECNw"  # Webhook URL
+
+wecom:
+  key: "437e9174-e60d-4b4b-8ba7-852d0f1fa1ea"  # 企业微信机器人 Webhook Key
 
 
 # PT下载器配置，支持多个PT下载器

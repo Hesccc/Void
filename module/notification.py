@@ -109,6 +109,8 @@ def send_notification(services: dict, config: dict, scanning_status: bool, error
 
     if notification_type == "webhook":
         _send_webhook(message, config.get('webhook', {}))
+    elif notification_type == "wecom":
+        _send_wecom_webhook(message, config.get('wecom', {}))
     elif notification_type == "email":
         _send_email(message, config.get('email', {}))
     else:
@@ -137,6 +139,90 @@ def _send_webhook(message: str, webhook_config: dict) -> None:
         logger.info("[发送通知] Webhook 发送成功")
     except Exception as e:
         logger.error(f"[发送通知] Webhook 失败: {str(e)}")
+
+def _format_message_to_markdown(message: str) -> str:
+    """
+    将文本消息转换为企业微信 Markdown 格式
+    """
+    lines = message.split('\n')
+    markdown_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        # 处理标题行（包含等号分隔符）
+        if '=' * 10 in line:
+            # 提取标题文字
+            title = line.replace('=', '').strip()
+            if title:
+                markdown_lines.append(f"## {title}")
+            else:
+                markdown_lines.append("---")  # 分隔线
+        # 处理短横线分隔符
+        elif '-' * 10 in line:
+            markdown_lines.append("---")
+        # 处理带 emoji 的行（标题级别）
+        elif any(emoji in line for emoji in ['⚙️', '📅', '🛠️', '📊', '🚀', '🔍', '🤖', '📈', '💡']):
+            # 加粗显示
+            markdown_lines.append(f"**{stripped}**")
+        # 处理列表项（通常是文件路径）
+        elif stripped.startswith(('- ', '• ')):
+            # 提取列表符号后的内容
+            # 查找第一个空格后的内容
+            content_start = line.find(' ') + 1
+            if stripped.startswith('- '): # 处理 "   - path" 这种情况
+                dash_index = line.find('- ')
+                if dash_index != -1:
+                    prefix = line[:dash_index+2]
+                    content = line[dash_index+2:]
+                    # 使用行内代码块包裹内容，解决由特殊字符（如反斜杠）在 Markdown 中不显示的问题
+                    markdown_lines.append(f"{prefix}`{content}`")
+                else:
+                    markdown_lines.append(line)
+            else:
+                markdown_lines.append(line)
+        # 普通文本
+        else:
+            markdown_lines.append(line)
+    
+    return '\n'.join(markdown_lines)
+
+def _send_wecom_webhook(message: str, wecom_config: dict) -> None:
+    """
+    发送企业微信 Webhook 通知
+    使用 markdown_v2 格式
+    """
+    key = wecom_config.get('key')
+    if not key:
+        logger.error("[发送通知] 企业微信 Webhook key 未配置")
+        return
+
+    # 将文本消息转换为 Markdown 格式
+    markdown_content = _format_message_to_markdown(message)
+    
+    session = get_http_session()
+    url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + key
+    payload = {
+        "msgtype": "markdown_v2",
+        "markdown_v2": {
+            "content": markdown_content
+        }
+    }
+    headers = {
+        "Content-Type": "application/json; charset=utf-8"
+    }
+
+    try:
+        response = session.post(url, json=payload, timeout=15, headers=headers, verify=False)
+        response.raise_for_status()
+        
+        # 检查企业微信返回的状态
+        result = response.json()
+        if result.get('errcode') == 0:
+            logger.info("[发送通知] 企业微信 Webhook 发送成功")
+        else:
+            logger.error(f"[发送通知] 企业微信 Webhook 失败: {result.get('errmsg', '未知错误')}")
+    except Exception as e:
+        logger.error(f"[发送通知] 企业微信 Webhook 失败: {str(e)}")
 
 def _send_email(message: str, email_config: dict) -> None:
     """

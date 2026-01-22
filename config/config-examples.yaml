@@ -3,7 +3,7 @@
 # =================================================================
 check_interval: 60              # 任务执行频率(分钟)，默认执行频率为：60分钟。例如：60：每小时执行一次；720：每12小时执行一次，1440：每天执行一次
 enable_auto_remove: False       # 是否启用自动删除，True，False表示禁用(禁用只发送检查通知)
-notification_type: "webhook"    # 通知类型：email 或 webhook
+notification_type: "wecom"    # 通知类型：email、webhook、wecom（企业微信）
 checkfile_size: 0             # 文件大小阈值(MB)，仅删除大于等于该值的未做种文件。设置为0则不限制文件大小。例如：50表示50MB， 0表示不限制
 excluded_paths: []            # 排除路径列表,不支持通配符需要填写完整路径；默认无设置排除目录
 
@@ -22,6 +22,10 @@ email:
 webhook:
   url: "https://example.com/webhook"  # Webhook URL
 
+# 企业微信 Webhook 通知配置
+# 使用方法：设置 notification_type: "wecom"
+wecom:
+  key: "437e9174-xxxx-4b4b-xxxx-852d0f1fa1ea"  # 企业微信机器人 Webhook URL
 
 # =================================================================
 # PT下载器配置，支持多个PT下载器
@@ -47,6 +51,8 @@ services:
 #   scan_paths:               # 要扫描的共享目录列表
 #     - "/data"               # Linux 示例
 #     # - "T:\\"              # Windows 示例
+#   # 注意：全局模式也需要在 services 中配置 path_mapping，
+#   # 将下载器内部路径映射回这里配置的 scan_paths 对应的宿主机路径。
 
 
 #### 更多下载器配置示例
@@ -58,7 +64,7 @@ services:
 #     port: 9091                   # 服务端口
 #     username: "admin"            # 登录用户名
 #     password: "admin"            # 登录密码
-#     path_mapping:                # 路径映射关系（简化格式）
+#     path_mapping:                # 路径映射关系
 #       - "/downloads": "/data"    # 格式："宿主机路径": "下载器内的保存路径"
 
 # Windows 环境示例
@@ -69,8 +75,8 @@ services:
 #     username: "admin"
 #     password: "password"
 #     path_mapping:
-#       - "T:\\": "/download"      # Windows 路径需要使用双反斜杠
-#       - "D:\\Media": "/media"    # 可以配置多个映射关系
+#       - "T:\\": "/download"      # Windows 路径必须使用双反斜杠 "\\"
+#       - "D:\\Media": "/media"    # 支持配置多个映射关系
 
 # 完整格式示例（兼容旧版本）
 #   - name: "QB03"

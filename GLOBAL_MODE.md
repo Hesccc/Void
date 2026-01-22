@@ -4,10 +4,10 @@
 
 Void 现在支持两种扫描模式：
 
-| 模式 | 适用场景 | 启动命令 |
+| 模式 | 适用场景 | 配置文件 |
 |------|---------|---------|
-| **普通模式** | 每个下载器独立管理自己的目录 | `uv run main.py` |
-| **全局模式** | 一个共享目录包含多个下载器的文件 | `uv run main_global.py` |
+| **普通模式** | 每个下载器独立管理自己的目录 | 使用config-examples.yaml |
+| **全局模式** | 一个共享目录包含多个下载器的文件 | 使用config-global-example.yaml |
 
 ---
 
@@ -169,14 +169,14 @@ docker run -d \
 | `scan_paths` | List | 要扫描的目录列表 | `["/data", "T:\\"]` |
 
 ### 路径映射说明
-
-在全局模式下，`path_mapping` 的作用是**将下载器返回的路径转换为实际可访问的路径**：
-
+ 
+在全局模式下，`path_mapping` 的作用是**将下载器返回的路径（容器内路径）转换为宿主机实际可访问的路径**，以便 Void 程序能够找到并扫描这些文件。
+ 
 ```yaml
-# 例如：qBittorrent 返回 /downloads/movie.mkv
-# 但实际文件在 /data/movie.mkv
+# 格式：  "宿主机路径": "容器内路径"
 path_mapping:
-  - "/data": "/downloads"   # 本地: 容器内
+  - "/data": "/downloads"   # Linux 示例
+  - "T:\\": "/downloads"    # Windows 示例（注意必须使用双反斜杠）
 ```
 
 ---

@@ -121,11 +121,11 @@ uv sync
 ### 2. 配置文件
 
 ```bash
-# 复制配置模板
-cp config-examples.yaml config.yaml
+# 复制配置模板到 config 目录
+cp config/config-examples.yaml config/config.yaml
 
 # 编辑配置
-nano config.yaml
+nano config/config.yaml
 ```
 
 ### 3. 运行
@@ -273,8 +273,8 @@ uv run main.py
 - **全局模式详解**: [GLOBAL_MODE.md](GLOBAL_MODE.md)
 - **更新日志**: [CHANGELOG.md](CHANGELOG.md)
 - **配置示例**: 
-  - 普通模式: `config-examples.yaml`
-  - 全局模式: `config-global-example.yaml`
+  - 普通模式: `config/config-examples.yaml`
+  - 全局模式: `config/config-global-example.yaml`
 
 ---
 
