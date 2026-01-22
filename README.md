@@ -117,15 +117,39 @@ services:
     path_mapping:
       - "/data": "/data"
 
-#### 示例配置
+#### 示例配置（更多下载器）
+
+# Linux 环境示例
 #   - name: "TR01"                 # 服务名称
 #     type: "transmission"         # 服务类型：qbittorrent 或 transmission
 #     host: "127.0.0.1"            # PT下载器服务地址，确保容器内能访问
 #     port: 9091                   # 服务端口
 #     username: "admin"            # 登录用户名
 #     password: "admin"            # 登录密码
-#     path_mapping:                # 映射路径关系
-#       "/downloads": "/data"
+#     path_mapping:                # 路径映射关系（简化格式）
+#       - "/downloads": "/data"    # 格式："宿主机路径": "下载器内的保存路径"
+
+# Windows 环境示例
+#   - name: "QB-Windows"
+#     type: "qbittorrent"
+#     host: "10.10.0.100"
+#     port: 8080
+#     username: "admin"
+#     password: "password"
+#     path_mapping:
+#       - "T:\\": "/download"      # Windows 路径需要使用双反斜杠
+#       - "D:\\Media": "/media"    # 可以配置多个映射关系
+
+# 完整格式示例（兼容旧版本）
+#   - name: "QB03"
+#     type: "qbittorrent"
+#     host: "192.168.1.100"
+#     port: 8080
+#     username: "admin"
+#     password: "password"
+#     path_mapping:
+#       - remote: "/data"          # 下载器内的路径
+#         local: "/mnt/data"       # 宿主机实际路径
 ```
 
 ## 运行效果

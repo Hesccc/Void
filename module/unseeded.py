@@ -10,29 +10,91 @@ logger = logs.logs_configuration()
 IS_WINDOWS = platform.system() == "Windows"
 
 def normalize_path(path: str) -> str:
-    """高度优化的路径规范化"""
+    """
+    跨平台路径规范化
+    - 识别路径类型（Windows 或 Linux/Unix）
+    - Windows路径：保持盘符，统一使用反斜杠
+    - Linux路径：保持以/开头，统一使用正斜杠
+    """
     if not path:
         return ""
-    # 统一使用对应系统的标准分隔符
-    return str(Path(path).resolve())
+    
+    # 统一分隔符
+    path = path.replace('\\', os.sep).replace('/', os.sep)
+    
+    # 移除末尾的分隔符（除非是根目录）
+    path = path.rstrip(os.sep)
+    
+    # 如果路径为空（原来只有分隔符），恢复为根目录
+    if not path:
+        return os.sep
+    
+    return path
 
 def translate_path(docker_path: str, path_mapping: Dict[str, str]) -> str:
     """
     将容器路径转换为本地路径
-    path_mapping 格式示例: {"remote": "/data", "local": "/mnt/user/data"}
+    
+    支持两种映射格式：
+    1. 完整格式: {"remote": "/data", "local": "/mnt/user/data"}
+    2. 简化格式: {"T:\\": "/download"} 或 {"/mnt/data": "/data"}
+    
+    Args:
+        docker_path: 容器内的路径
+        path_mapping: 路径映射字典
+    
+    Returns:
+        转换后的本地路径
     """
     if not docker_path or not path_mapping:
         return docker_path
-
-    # 获取 remote 和 local，适配你 YAML 优化后的结构
-    remote = normalize_path(path_mapping.get('remote', ''))
-    local = normalize_path(path_mapping.get('local', ''))
     
-    target_path = normalize_path(docker_path)
+    # 尝试完整格式（优先）
+    if 'remote' in path_mapping and 'local' in path_mapping:
+        remote = path_mapping['remote']
+        local = path_mapping['local']
+    else:
+        # 简化格式：字典只有一个键值对，local: remote
+        # 例如： {"T:\\": "/download"} 表示本地T:\ 对应容器内的 /download
+        if len(path_mapping) != 1:
+            logger.warning(f"[路径映射] 格式不正确，跳过: {path_mapping}")
+            return docker_path
+        
+        local, remote = list(path_mapping.items())[0]
     
-    if remote and target_path.startswith(remote):
-        return target_path.replace(remote, local, 1)
-    return target_path
+    # 标准化路径（不使用resolve避免跨平台问题）
+    # 移除末尾的分隔符以便比较
+    remote_normalized = remote.rstrip('/').rstrip('\\')
+    local_normalized = local.rstrip('/').rstrip('\\')
+    docker_path_normalized = docker_path.rstrip('/').rstrip('\\')
+    
+    # 统一使用正斜杠进行比较（容器路径通常是Linux格式）
+    remote_for_compare = remote_normalized.replace('\\', '/')
+    docker_for_compare = docker_path_normalized.replace('\\', '/')
+    
+    # 检查是否匹配（前缀匹配）
+    if docker_for_compare == remote_for_compare or docker_for_compare.startswith(remote_for_compare + '/'):
+        # 计算相对路径
+        if docker_for_compare == remote_for_compare:
+            relative_part = ""
+        else:
+            relative_part = docker_for_compare[len(remote_for_compare):].lstrip('/')
+        
+        # 构建本地路径
+        if relative_part:
+            # 使用本地系统的路径分隔符
+            relative_local = relative_part.replace('/', os.sep)
+            # 确保本地路径有分隔符再拼接（处理Windows盘符情况）
+            if local_normalized and not local_normalized.endswith(os.sep):
+                result = local_normalized + os.sep + relative_local
+            else:
+                result = local_normalized + relative_local
+        else:
+            result = local_normalized
+        
+        return normalize_path(result)
+    
+    return docker_path
 
 def create_client(config: dict):
     """创建并测试客户端连接"""

@@ -18,19 +18,20 @@ email:
   to: "to@example.com"              # 收件人地址
 
 webhook:
-  url: "https://example.com/webhook"  # Webhook URL
+  url: "https://moviepilot.hesc.info/api/v1/plugin/MsgNotify/send_json?apikey=L4JxAu7j35EsD9FConECNw"  # Webhook URL
 
 
 # PT下载器配置，支持多个PT下载器
 services:
-  - name: "QB01"
+  - name: "upload-qbittorrent"
     type: "qbittorrent"
-    host: "127.0.0.1"
+    host: "10.10.0.254"
     port: 8080
     username: "admin"
-    password: "example"
+    password: "Hesc1007."
     path_mapping:
-      - "/data": "/data"
+      # 宿主机路径 : qbittorrent下载保持路径
+      - "T:\\": "/download"
 
 
 # 示例配置
@@ -40,5 +41,5 @@ services:
 #     port: 9091                   # 服务端口
 #     username: "admin"            # 登录用户名
 #     password: "admin"            # 登录密码
-#     path_mapping:                # 映射路径关系
+#     path_mapping:                # 映射路径关系，"宿主机路径 : qbittorrent下载保持路径"
 #       "/downloads": "/data"
