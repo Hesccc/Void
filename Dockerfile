@@ -32,7 +32,7 @@ COPY . .
 # 设置配置文件模板
 # 将源码中的 config.yaml 移动到 defaults 目录，供 entrypoint.sh 在初始化时使用
 RUN mkdir -p defaults && \
-    mv config.yaml defaults/config.yaml && \
+    cp config/config-examples.yaml defaults/config.yaml && \
     chmod +x entrypoint.sh
 
 # 声明配置挂载点
