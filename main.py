@@ -203,5 +203,3 @@ if __name__ == "__main__":
             
     logger.info("===== 程序已安全停止 =====")
     sys.exit(0)
-
-# test github action
