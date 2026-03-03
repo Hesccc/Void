@@ -86,6 +86,7 @@ def main_task_normal_mode(config: dict):
                 notification.send_notification(item, config, True, deleted_info=deleted_info)
             else:
                 logger.info(f"[报告] 发现 {len(files_to_remove)} 个文件 (预览模式)")
+                logger.info(f"[报告] 文件清单：{files_to_remove}")
                 notification.send_notification(item, config, True, deleted_info=deleted_info)
         else:
             if error_messages:
