@@ -2,8 +2,8 @@
 
 一款用于自动清理 PT/BT 下载目录中**未做种（冗余）文件**的工具。它会通过 API 连接下载客户端（qBittorrent/Transmission），获取所有当前正在做种的文件列表，并与本地下载目录进行比对，自动删除那些**不在做种列表中**的文件和空文件夹，帮助你释放磁盘空间。
 
-- docker hub仓库：[https://hub.docker.com/repository/docker/hescc/unseeded-file-remover/general](https://hub.docker.com/r/hescc/unseeded-file-remover)
-- github仓库：[https://github.com/Hesccc/unseeded-file-remover](https://github.com/Hesccc/unseeded-file-remover)
+- docker hub仓库：[https://hub.docker.com/repository/docker/hescc/void/general](https://hub.docker.com/r/hescc/void)
+- github仓库：[https://github.com/Hesccc/Void](https://github.com/Hesccc/Void)
 
 > 借鉴蜂巢论坛[PT工具：找到硬盘里没有被做种的文件](https://pting.club/d/1840) 文章中的Python代码
 >
