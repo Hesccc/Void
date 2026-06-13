@@ -19,7 +19,73 @@
     <div class="ambient-sphere sphere-1"></div>
     <div class="ambient-sphere sphere-2"></div>
 
-    <div class="app-container">
+    <!-- 登录遮罩层 -->
+    <div id="login-overlay" style="display: none;">
+        <div class="login-card">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <img src="/favicon.png" alt="Void Logo" style="width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 0 20px var(--accent-glow);">
+                <h2 style="margin-top: 16px; font-weight: 700;">登录 Void</h2>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">系统已开启安全认证</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="login-user" required autocomplete="username" placeholder="请输入用户名" style="background: rgba(255,255,255,0.03);">
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>密码</label>
+                    <div class="password-container">
+                        <input type="password" id="login-pwd" required autocomplete="current-password" placeholder="请输入密码" style="background: rgba(255,255,255,0.03);">
+                        <button class="password-toggle" type="button" onclick="togglePasswordVisibility('login-pwd')">
+                            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary login-btn" id="btn-login-submit" style="width: 100%; margin-top: 24px; padding: 12px; font-size: 16px;">
+                    进入系统
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 强制改密弹窗 -->
+    <div class="modal-overlay" id="change-pwd-modal">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>⚠️ 首次登录安全提示</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; font-size: 14px; color: var(--warning);">为了系统安全，首次使用默认凭据登录后必须修改初始密码。</p>
+                <form id="change-pwd-form">
+                    <div class="form-group">
+                        <label>当前密码</label>
+                        <input type="password" id="chg-old-pwd" required>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>新密码</label>
+                        <div class="password-container">
+                            <input type="password" id="chg-new-pwd" required minlength="6">
+                            <button class="password-toggle" type="button" onclick="togglePasswordVisibility('chg-new-pwd')">
+                                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>确认新密码</label>
+                        <input type="password" id="chg-confirm-pwd" required minlength="6">
+                    </div>
+                    <div class="modal-actions" style="margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary" id="btn-chg-pwd-submit" style="width: 100%;">
+                            保存新密码并进入
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 原始 app-container 添加 style 隐藏，直到 auth 成功 -->
+    <div class="app-container" style="display: none;" id="main-app">
         <!-- SVG Gradient definition -->
         <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
             <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -71,6 +137,21 @@
                         <path d="M4 17l6-6-6-6m8 14h8" />
                     </svg>
                     实时日志
+                </div>
+                <div class="nav-item" data-tab="account" id="nav-account">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    账号安全
+                </div>
+                
+                <div style="flex-grow: 1;"></div>
+                
+                <div class="nav-item" id="nav-logout" style="color: var(--error); margin-top: auto;">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                    </svg>
+                    退出登录
                 </div>
             </nav>
         </aside>
@@ -523,6 +604,45 @@
 
                 <div class="terminal-panel terminal-panel-adjusted" id="log-terminal">
                     <!-- 流式日志注入 -->
+                </div>
+            </section>
+
+            <!-- 5. 账号安全 tab -->
+            <section class="tab-panel" id="account">
+                <div class="panel-header">
+                    <h2 class="panel-title">账号安全</h2>
+                    <p class="panel-subtitle">修改您的登录凭证</p>
+                </div>
+
+                <div class="card" style="max-width: 600px; margin-top: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                        <span style="display: inline-block; width: 4px; height: 16px; background: var(--accent-primary); border-radius: 2px;"></span>
+                        修改密码
+                    </h3>
+                    <form id="account-chg-pwd-form" class="form-section">
+                        <div class="form-group">
+                            <label>当前密码</label>
+                            <input type="password" id="account-old-pwd" required>
+                        </div>
+                        <div class="form-group">
+                            <label>新密码</label>
+                            <div class="password-container">
+                                <input type="password" id="account-new-pwd" required minlength="6">
+                                <button class="password-toggle" type="button" onclick="togglePasswordVisibility('account-new-pwd')">
+                                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>确认新密码</label>
+                            <input type="password" id="account-confirm-pwd" required minlength="6">
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button type="submit" class="btn btn-primary" id="btn-account-chg-submit">
+                                保存并修改密码
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </section>
         </main>

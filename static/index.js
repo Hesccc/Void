@@ -1,3 +1,184 @@
+
+// --- 认证管理 ---
+let authToken = localStorage.getItem('void_auth_token') || '';
+
+async function authFetch(url, options = {}) {
+    if (!options.headers) {
+        options.headers = {};
+    }
+    if (authToken) {
+        options.headers['Authorization'] = 'Bearer ' + authToken;
+    }
+    
+    const response = await fetch(url, options);
+    if (response.status === 401) {
+        showLoginOverlay();
+        throw new Error('Unauthorized');
+    }
+    return response;
+}
+
+function showLoginOverlay() {
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('change-pwd-modal').style.display = 'none';
+    document.getElementById('login-overlay').style.display = 'flex';
+}
+
+function hideLoginOverlay() {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('main-app').style.display = 'flex';
+}
+
+function showChangePwdModal() {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('change-pwd-modal').style.display = 'flex';
+}
+
+async function checkAuth() {
+    if (!authToken) {
+        showLoginOverlay();
+        return false;
+    }
+    try {
+        const response = await fetch('/api/auth/check', {
+            headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        if (response.status === 401) {
+            showLoginOverlay();
+            return false;
+        }
+        const res = await response.json();
+        if (res.must_change_password) {
+            showChangePwdModal();
+            return false;
+        }
+        return true;
+    } catch(err) {
+        console.error(err);
+        showLoginOverlay();
+        return false;
+    }
+}
+
+// 登录表单提交
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-login-submit');
+    btn.disabled = true;
+    btn.innerText = '登录中...';
+    
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: document.getElementById('login-user').value,
+                password: document.getElementById('login-pwd').value
+            })
+        });
+        
+        if (res.status === 401) {
+            showToast('❌ 用户名或密码错误', 3000);
+            btn.disabled = false;
+            btn.innerText = '进入系统';
+            return;
+        }
+        
+        const data = await res.json();
+        if (data.success) {
+            authToken = data.token;
+            localStorage.setItem('void_auth_token', authToken);
+            
+            if (data.must_change_password) {
+                showChangePwdModal();
+            } else {
+                hideLoginOverlay();
+                await initApp();
+            }
+        }
+    } catch(err) {
+        showToast('❌ 登录请求失败', 3000);
+    }
+    
+    btn.disabled = false;
+    btn.innerText = '进入系统';
+});
+
+// 退出登录
+document.getElementById('nav-logout').addEventListener('click', async () => {
+    if(authToken) {
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+    }
+    authToken = '';
+    localStorage.removeItem('void_auth_token');
+    showLoginOverlay();
+    
+    // 清除数据
+    document.getElementById('files-tbody').innerHTML = '';
+    document.getElementById('tasks-tbody').innerHTML = '';
+    if(logEventSource) {
+        logEventSource.close();
+    }
+});
+
+// 修改密码表单
+document.getElementById('change-pwd-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const oldPwd = document.getElementById('chg-old-pwd').value;
+    const newPwd = document.getElementById('chg-new-pwd').value;
+    const confirmPwd = document.getElementById('chg-confirm-pwd').value;
+    
+    if (newPwd !== confirmPwd) {
+        showToast('❌ 两次输入的新密码不一致', 3000);
+        return;
+    }
+    
+    const btn = document.getElementById('btn-chg-pwd-submit');
+    btn.disabled = true;
+    btn.innerText = '修改中...';
+    
+    try {
+        const res = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + authToken
+            },
+            body: JSON.stringify({
+                old_password: oldPwd,
+                new_password: newPwd
+            })
+        });
+        
+        if (res.status === 400 || res.status === 401) {
+            const errData = await res.json();
+            showToast('❌ ' + (errData.detail || '旧密码错误'), 3000);
+        } else if (res.ok) {
+            showToast('✅ 密码修改成功！', 3000);
+            document.getElementById('change-pwd-modal').style.display = 'none';
+            hideLoginOverlay();
+            await initApp();
+            
+            // 清除密码输入框
+            document.getElementById('chg-old-pwd').value = '';
+            document.getElementById('chg-new-pwd').value = '';
+            document.getElementById('chg-confirm-pwd').value = '';
+        } else {
+            showToast('❌ 修改失败', 3000);
+        }
+    } catch(err) {
+        showToast('❌ 请求失败', 3000);
+    }
+    
+    btn.disabled = false;
+    btn.innerText = '保存新密码并进入';
+});
+
+// --- 原有逻辑 ---
 // Tab 导航控制
         const navItems = document.querySelectorAll('.nav-item');
         const tabPanels = document.querySelectorAll('.tab-panel');
@@ -99,7 +280,7 @@
 
         async function fetchConfig() {
             try {
-                const response = await fetch('/api/config');
+                const response = await authFetch('/api/config');
                 globalConfig = await response.json();
                 renderDashboard();
                 renderSettingsForm();
@@ -110,7 +291,7 @@
 
         async function fetchDashboardSummary() {
             try {
-                const response = await fetch('/api/dashboard/summary');
+                const response = await authFetch('/api/dashboard/summary');
                 const res = await response.json();
                 if (res.success) {
                     document.getElementById('stat-unseeded-count').innerHTML = `${res.unseeded_count} <span class="card-unit">个</span>`;
@@ -352,7 +533,7 @@
             }
 
             try {
-                const response = await fetch('/api/config/test', {
+                const response = await authFetch('/api/config/test', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(serviceData)
@@ -435,7 +616,7 @@
 
             showToast("正在保存配置...", 0, true);
             try {
-                const response = await fetch('/api/config', {
+                const response = await authFetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -467,7 +648,7 @@
             }
             showToast("正在请求启动扫描任务...", 0, true);
             try {
-                const response = await fetch('/api/tasks', {
+                const response = await authFetch('/api/tasks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ mode: mode, force: force })
@@ -505,7 +686,7 @@
         // 获取任务历史
         async function loadTasks() {
             try {
-                const response = await fetch('/api/tasks');
+                const response = await authFetch('/api/tasks');
                 const res = await response.json();
                 if (res.success) {
                     const tasks = res.tasks || [];
@@ -832,7 +1013,7 @@
         async function pauseTask(taskId) {
             showToast("正在请求暂停任务...", 1500, true);
             try {
-                const response = await fetch(`/api/tasks/${taskId}/pause`, { method: 'POST' });
+                const response = await authFetch(`/api/tasks/${taskId}/pause`, { method: 'POST' });
                 const res = await response.json();
                 if (res.success) {
                     showToast("⏸️ 任务已暂停");
@@ -848,7 +1029,7 @@
         async function resumeTask(taskId) {
             showToast("正在恢复任务...", 1500, true);
             try {
-                const response = await fetch(`/api/tasks/${taskId}/resume`, { method: 'POST' });
+                const response = await authFetch(`/api/tasks/${taskId}/resume`, { method: 'POST' });
                 const res = await response.json();
                 if (res.success) {
                     showToast("▶️ 任务已继续开始扫描");
@@ -867,7 +1048,7 @@
 
             showToast("正在请求终止任务...", 1500, true);
             try {
-                const response = await fetch(`/api/tasks/${taskId}/cancel`, { method: 'POST' });
+                const response = await authFetch(`/api/tasks/${taskId}/cancel`, { method: 'POST' });
                 const res = await response.json();
                 if (res.success) {
                     showToast("⏹️ 任务终止指令已下发并安全终止");
@@ -886,7 +1067,7 @@
 
             showToast("正在删除任务记录...", 1500, true);
             try {
-                const response = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+                const response = await authFetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
                 const res = await response.json();
                 if (res.success) {
                     showToast("✅ 任务记录及关联结果删除成功");
@@ -929,7 +1110,7 @@
             }
 
             try {
-                const response = await fetch(`/api/files/unseeded?task_id=${filterVal}`);
+                const response = await authFetch(`/api/files/unseeded?task_id=${filterVal}`);
                 const res = await response.json();
                 if (res.success) {
                     detectedFiles = res.files || [];
@@ -1104,7 +1285,7 @@
 
             showToast("正在删除文件...", 0, true);
             try {
-                const response = await fetch('/api/delete', {
+                const response = await authFetch('/api/delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ files: filePaths })
@@ -1144,7 +1325,7 @@
 
             if (logEventSource) logEventSource.close();
 
-            logEventSource = new EventSource('/api/logs');
+            logEventSource = new EventSource('/api/logs?token=' + authToken);
             statusDot.className = 'log-dot online';
             statusText.innerText = '连接状态: 监听中';
 
@@ -1234,12 +1415,21 @@
             document.getElementById('log-terminal').innerHTML = '<div class="terminal-line" style="color:var(--text-muted)">[已手动清屏]</div>';
         });
 
-        // 页面初始化
-        window.addEventListener('DOMContentLoaded', async () => {
+        // 提取初始化主逻辑
+        async function initApp() {
             await fetchConfig();
             initLogsStream();
             loadTasks();
             loadUnseededFiles();
+        }
+
+        // 页面初始化
+        window.addEventListener('DOMContentLoaded', async () => {
+            const isAuthed = await checkAuth();
+            if (isAuthed) {
+                hideLoginOverlay();
+                await initApp();
+            }
 
             // 配置子 Tab 切换监听绑定
             document.querySelectorAll('.config-tab-btn').forEach(btn => {
@@ -1270,3 +1460,51 @@
             document.getElementById('btn-create-global-scan').addEventListener('click', () => startScanTask('global'));
             document.getElementById('btn-manual-scan').addEventListener('click', () => startScanTask(null));
         });
+
+// --- 账号修改密码子页面逻辑 ---
+document.getElementById('account-chg-pwd-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const oldPwd = document.getElementById('account-old-pwd').value;
+    const newPwd = document.getElementById('account-new-pwd').value;
+    const confirmPwd = document.getElementById('account-confirm-pwd').value;
+    
+    if (newPwd !== confirmPwd) {
+        showToast('❌ 两次输入的新密码不一致', 3000);
+        return;
+    }
+    
+    const btn = document.getElementById('btn-account-chg-submit');
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = '修改中...';
+    
+    try {
+        const res = await authFetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                old_password: oldPwd,
+                new_password: newPwd
+            })
+        });
+        
+        if (res.status === 400 || res.status === 401) {
+            const errData = await res.json();
+            showToast('❌ ' + (errData.detail || '旧密码错误'), 3000);
+        } else if (res.ok) {
+            showToast('✅ 密码修改成功！', 3000);
+            document.getElementById('account-old-pwd').value = '';
+            document.getElementById('account-new-pwd').value = '';
+            document.getElementById('account-confirm-pwd').value = '';
+        } else {
+            showToast('❌ 修改失败', 3000);
+        }
+    } catch(err) {
+        showToast('❌ 请求失败: ' + err.message, 3000);
+    }
+    
+    btn.disabled = false;
+    btn.innerText = originalText;
+});

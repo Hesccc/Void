@@ -1,6 +1,8 @@
 import os
 import sqlite3
 import logging
+import hashlib
+import secrets
 from datetime import datetime, timedelta
 
 DB_PATH = os.getenv("DB_PATH", "./config/void.db")
@@ -19,6 +21,19 @@ def init_db():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        
+        # 0. 用户表
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            must_change_password INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        )
+        """)
         
         # 1. 任务表
         cursor.execute("""
@@ -54,10 +69,72 @@ def init_db():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_scan_results_file_path ON scan_results(file_path);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_scan_results_deleted ON scan_results(deleted);")
         
+        # 初始化默认用户
+        init_default_user(cursor)
+        
         conn.commit()
         logger.info("[DB] 数据库初始化成功")
     except Exception as e:
         logger.error(f"[DB] 数据库初始化失败: {e}")
+    finally:
+        conn.close()
+
+def get_password_hash(password: str, salt: str) -> str:
+    """生成加盐后的密码哈希"""
+    return hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
+
+def init_default_user(cursor):
+    """如果用户表为空，则初始化默认 admin 用户"""
+    cursor.execute("SELECT COUNT(*) FROM users")
+    if cursor.fetchone()[0] == 0:
+        salt = secrets.token_hex(16)
+        pwd_hash = get_password_hash("void@123", salt)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute(
+            "INSERT INTO users (username, password_hash, salt, must_change_password, created_at) VALUES (?, ?, ?, ?, ?)",
+            ("admin", pwd_hash, salt, 1, now)
+        )
+        logger.info("[DB] 创建默认管理员用户: admin / void@123 (首次登录需修改密码)")
+
+def verify_user(username: str, password: str) -> dict:
+    """
+    验证用户凭据。成功返回包含 user 信息的字典，失败返回 None
+    """
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, username, password_hash, salt, must_change_password FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        if user:
+            expected_hash = get_password_hash(password, user['salt'])
+            if secrets.compare_digest(user['password_hash'], expected_hash):
+                return dict(user)
+        return None
+    except Exception as e:
+        logger.error(f"[DB] 验证用户凭据失败: {e}")
+        return None
+    finally:
+        conn.close()
+
+def update_user_password(user_id: int, new_password: str):
+    """
+    更新用户密码，并将 must_change_password 置为 0
+    """
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        new_salt = secrets.token_hex(16)
+        new_hash = get_password_hash(new_password, new_salt)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute(
+            "UPDATE users SET password_hash = ?, salt = ?, must_change_password = 0, updated_at = ? WHERE id = ?",
+            (new_hash, new_salt, now, user_id)
+        )
+        conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"[DB] 更新用户密码失败: {e}")
+        return False
     finally:
         conn.close()
 

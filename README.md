@@ -96,6 +96,11 @@ docker run -d \
 ```
 http://[宿主机IP]:8000
 ```
+**默认账号：admin**
+
+**默认密码：void@123**
+
+> 首次部署强制修改密码才能使用。
 
 在管理后台的**配置中心**页面中，可以可视化地完成所有配置项设置：
 
@@ -106,17 +111,40 @@ http://[宿主机IP]:8000
 
 ## 运行效果
 
-邮件通知
+### 登录界面
+
+![登录界面](https://ovvo.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_2026-06-13_234428_436.png)
+
+### 控制中心
+
+![控制中心](https://ovvo.oss-cn-shenzhen.aliyuncs.com/PicGo/20260613234756198.png)
+
+### 冗余文件
+
+![冗余文件](https://ovvo.oss-cn-shenzhen.aliyuncs.com/PicGo/20260613234858622.png)
+
+### 任务管理
+
+![任务管理](https://ovvo.oss-cn-shenzhen.aliyuncs.com/PicGo/20260613234944648.png)
+
+### 配置中心
+
+![配置中心](https://ovvo.oss-cn-shenzhen.aliyuncs.com/PicGo/20260613235030760.png)
+
+### 实时日志
+
+![实时日志](https://ovvo.oss-cn-shenzhen.aliyuncs.com/PicGo/20260613235216520.png)
+
+通知功能
+1. 邮件通知
 
 ![邮件通知](https://ovvo.oss-cn-shenzhen.aliyuncs.com/GitHub/PixPin_2026-01-23_02-17-26.png)
 
+2. MoviePilot通知转发
 
-MoviePilot通知转发
+![MoviePilot通知转发](https://ovvo.oss-cn-shenzhen.aliyuncs.com/GitHub/PixPin_2026-01-23_02-20-43.png)
 
-![MoviePile通知转发](https://ovvo.oss-cn-shenzhen.aliyuncs.com/GitHub/PixPin_2026-01-23_02-20-43.png)
-
-
-企业微信通知
+3. 企业微信通知
 
 ![企业微信通知](https://ovvo.oss-cn-shenzhen.aliyuncs.com/GitHub/ScreenShot_2026-01-23_021214_778.png)
 

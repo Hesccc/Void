@@ -3,10 +3,12 @@ import sys
 import yaml
 import asyncio
 import logging
+import secrets
+import time
 from typing import List, Dict
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse, JSONResponse
 from pydantic import BaseModel
 
 from tools import config as config_tool
@@ -19,7 +21,19 @@ app = FastAPI(title="Void Web Server")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 scan_lock = asyncio.Lock()
 
+# 会话管理
+active_sessions: Dict[str, dict] = {}
+SESSION_EXPIRE_SECONDS = 24 * 3600
+
 # Pydantic 校验模型
+class LoginModel(BaseModel):
+    username: str
+    password: str
+
+class ChangePasswordModel(BaseModel):
+    old_password: str
+    new_password: str
+
 class ConfigUpdateModel(BaseModel):
     check_interval: int
     enable_auto_remove: bool
@@ -54,6 +68,94 @@ async def startup_event():
     """初始化数据库并清理旧的历史记录"""
     db.init_db()
     db.clean_old_tasks()
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    
+    # 白名单，不需要认证
+    whitelist = [
+        "/",
+        "/favicon.png",
+        "/api/auth/login"
+    ]
+    
+    if path in whitelist or path.startswith("/static/"):
+        return await call_next(request)
+        
+    # 其他 /api/ 路由需要鉴权
+    if path.startswith("/api/"):
+        token = None
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+        elif request.query_params.get("token"):
+            token = request.query_params.get("token")
+            
+        if not token:
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+            
+        session = active_sessions.get(token)
+        
+        if not session or time.time() - session["created_at"] > SESSION_EXPIRE_SECONDS:
+            if token in active_sessions:
+                del active_sessions[token]
+            return JSONResponse(status_code=401, content={"detail": "Session expired or invalid"})
+            
+        # 将用户信息挂载到 request 状态中
+        request.state.user = session["user"]
+        
+    return await call_next(request)
+
+@app.post("/api/auth/login")
+async def login(data: LoginModel):
+    user = db.verify_user(data.username, data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+        
+    token = secrets.token_hex(32)
+    active_sessions[token] = {
+        "user": user,
+        "created_at": time.time()
+    }
+    
+    return {
+        "success": True, 
+        "token": token, 
+        "must_change_password": bool(user["must_change_password"])
+    }
+
+@app.get("/api/auth/check")
+async def check_auth(request: Request):
+    user = request.state.user
+    return {
+        "success": True, 
+        "username": user["username"], 
+        "must_change_password": bool(user["must_change_password"])
+    }
+
+@app.post("/api/auth/change-password")
+async def change_password(data: ChangePasswordModel, request: Request):
+    user = request.state.user
+    verified_user = db.verify_user(user["username"], data.old_password)
+    if not verified_user:
+        raise HTTPException(status_code=400, detail="旧密码错误")
+        
+    if db.update_user_password(user["id"], data.new_password):
+        request.state.user["must_change_password"] = 0
+        active_sessions[request.headers.get("Authorization").split(" ")[1]]["user"]["must_change_password"] = 0
+        return {"success": True, "message": "密码修改成功"}
+    else:
+        raise HTTPException(status_code=500, detail="密码修改失败")
+
+@app.post("/api/auth/logout")
+async def logout(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        if token in active_sessions:
+            del active_sessions[token]
+    return {"success": True}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index():
