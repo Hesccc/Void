@@ -2,10 +2,13 @@ services:
   void:
     image: hescc/void:latest
     container_name: void
+    # 若不使用 host 网络模式，可取消注释 ports 并注释 network_mode
+    # ports:
+    #   - 8000:8000
     network_mode: host
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - ./config:/app/config 
+      - ./config:/app/config
       - /data:/data

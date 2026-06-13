@@ -2,9 +2,9 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-def logs_configuration(log_file=None, class_name='Void'):
+def logs_configuration(log_file=None, class_name='void'):
     if log_file is None:
-        log_file = os.getenv('LOG_PATH', 'logs/Void.log')
+        log_file = os.getenv('LOG_PATH', 'logs/void.log')
         
     logger = logging.getLogger(class_name)
     

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Void - PT/BT 冗余文件清理工具</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <!-- 引入高档 Google 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+
+<body>
+    <div class="ambient-sphere sphere-1"></div>
+    <div class="ambient-sphere sphere-2"></div>
+
+    <div class="app-container">
+        <!-- SVG Gradient definition -->
+        <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+            <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a78bfa" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+            </linearGradient>
+        </svg>
+
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="/favicon.png" alt="Void Logo" style="width:32px; height:32px; border-radius:50%; box-shadow:0 0 12px var(--accent-glow);">
+                <span>Void</span>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item active" data-tab="dashboard">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="9" rx="1" />
+                        <rect x="14" y="3" width="7" height="5" rx="1" />
+                        <rect x="14" y="12" width="7" height="9" rx="1" />
+                        <rect x="3" y="16" width="7" height="5" rx="1" />
+                    </svg>
+                    控制中心
+                </div>
+                <div class="nav-item" data-tab="unseeded-files" id="nav-unseeded">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m12 0V5a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0h-2m-8 0H5" />
+                    </svg>
+                    冗余文件
+                </div>
+                <div class="nav-item" data-tab="tasks" id="nav-tasks">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    任务管理
+                </div>
+                <div class="nav-item" data-tab="settings">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                    </svg>
+                    配置编辑
+                </div>
+                <div class="nav-item" data-tab="logs" id="nav-logs">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 17l6-6-6-6m8 14h8" />
+                    </svg>
+                    实时日志
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主面板 -->
+        <main class="main-content">
+            <!-- 1. 控制中心 tab -->
+            <section class="tab-panel active" id="dashboard">
+                <div class="panel-header">
+                    <h2 class="panel-title">控制中心</h2>
+                    <p class="panel-subtitle">查看系统状态与执行扫描</p>
+                </div>
+
+                <!-- 正在运行任务看板容器 -->
+                <div id="active-task-container"></div>
+
+                <h3 style="font-size: 15px; font-weight:700; margin-bottom:15px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-block; width:4px; height:16px; background:var(--accent-primary); border-radius:2px;"></span>
+                    数据与清理监控
+                </h3>
+                <div class="card-grid" style="margin-bottom: 30px;">
+                    <div class="card">
+                        <div class="card-title">冗余文件总数</div>
+                        <div class="card-value" id="stat-unseeded-count">-- <span class="card-unit">个</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">可释放空间</div>
+                        <div class="card-value" id="stat-unseeded-size">-- <span class="card-unit">GB</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">已清理文件数</div>
+                        <div class="card-value" id="stat-cleaned-count">-- <span class="card-unit">个</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">最近扫描时间</div>
+                        <div style="font-size:20px; font-weight:700; margin-top:8px; line-height:36px;" id="stat-last-scan">--</div>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 15px; font-weight:700; margin-bottom:15px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-block; width:4px; height:16px; background:var(--accent-primary); border-radius:2px;"></span>
+                    运行与配置状态
+                </h3>
+                <div class="card-grid" style="margin-bottom: 30px;">
+                    <div class="card">
+                        <div class="card-title">运行状态</div>
+                        <div class="status-badge status-active" id="sys-status-badge" style="margin-top: 10px;">
+                            <div class="status-dot"></div>
+                            <span>正在运行 (守护模式)</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">客户端及规则</div>
+                        <div style="font-size:13px; font-weight:500; margin-top:6px; color:var(--text-muted); display:flex; flex-direction:column; gap:6px; line-height: 1.5;">
+                            <div>🔌 下载客户端: <span id="stat-services-count" style="color:var(--text-main); font-weight:600;">0</span> 个</div>
+                            <div>📁 全局扫描路径: <span id="stat-paths-count" style="color:var(--text-main); font-weight:600;">0</span> 个</div>
+                            <div>🚫 排除路径规则: <span id="stat-rules-count" style="color:var(--text-main); font-weight:600;">0</span> 条</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">文件自动清理</div>
+                        <div class="card-value" id="stat-auto-remove">--</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">安全防护回收站</div>
+                        <div class="card-value" id="stat-recycle-bin">--</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 16px;">
+                    <button class="btn btn-primary" id="btn-manual-scan">
+                        <svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67" />
+                        </svg>
+                        立即开始扫描任务
+                    </button>
+                    <button class="btn btn-secondary" onclick="switchTab('logs')">查看实时日志</button>
+                </div>
+            </section>
+
+            <!-- 2. 冗余文件列表 tab -->
+            <section class="tab-panel" id="unseeded-files">
+                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <h2 class="panel-title">冗余文件</h2>
+                        <p class="panel-subtitle">磁盘上存在但未在下载客户端做种的冗余文件</p>
+                    </div>
+                    <div style="display:flex; gap:12px; align-items: center;">
+                        <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">过滤扫描记录:</label>
+                        <select id="select-task-filter" style="min-width: 260px; padding: 8px 12px; font-size: 13px;">
+                            <option value="merged">合并显示所有未清理文件（去重）</option>
+                        </select>
+                        <button class="btn btn-danger" id="btn-delete-selected" disabled>删除选中项</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-scroll">
+                        <table id="files-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;"><input type="checkbox" id="check-all"></th>
+                                    <th>文件名</th>
+                                    <th style="width: 140px;">文件大小</th>
+                                    <th style="width: 160px;">来源客户端</th>
+                                    <th style="width: 100px; text-align: center;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="files-tbody">
+                                <tr>
+                                    <td colspan="5"
+                                        style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                        请在上方下拉菜单选择具体历史任务或合并去重展示。
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="pagination-controls"
+                    style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:16px;"></div>
+            </section>
+
+            <!-- 2.5. 任务管理 tab -->
+            <section class="tab-panel" id="tasks">
+                <div class="panel-header">
+                    <h2 class="panel-title">任务管理</h2>
+                    <p class="panel-subtitle">任务执行历史与实时状态控制</p>
+                </div>
+
+                <!-- 任务指标看板 -->
+                <div class="card-grid" style="margin-bottom: 24px;">
+                    <div class="card">
+                        <div class="card-title">历史执行总次数</div>
+                        <div class="card-value" id="task-stat-total">-- <span class="card-unit">次</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">扫描成功率</div>
+                        <div class="card-value" id="task-stat-success-rate">-- <span class="card-unit">%</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">最后扫描结果</div>
+                        <div style="font-size:16px; font-weight:700; margin-top:8px; line-height:36px; color: var(--text-muted);" id="task-stat-last-result">--</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">系统当前状态</div>
+                        <div class="status-badge" id="task-stat-system-badge" style="margin-top: 10px; width: fit-content;">
+                            <div class="status-dot"></div>
+                            <span>队列空闲</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 扫描控制中心 -->
+                <div class="card" style="margin-bottom: 24px; background: rgba(255, 255, 255, 0.015); border-color: rgba(139, 92, 246, 0.15);">
+                    <h3 style="font-size: 15px; font-weight:700; margin-bottom:16px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                        <span style="display:inline-block; width:4px; height:16px; background:var(--accent-primary); border-radius:2px;"></span>
+                        扫描命令中心
+                    </h3>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
+                        <!-- 普通扫描卡片 -->
+                        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease;" class="hover-glow-card">
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent-primary);">
+                                    <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 14px; color: var(--text-main);">启动普通扫描</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">按下载客户端的物理路径执行扫描</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;" id="btn-create-normal-scan">立即执行</button>
+                        </div>
+
+                        <!-- 全局扫描卡片 -->
+                        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease;" class="hover-glow-card">
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent-primary);">
+                                    <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                        <polyline points="2 17 12 22 22 17"></polyline>
+                                        <polyline points="2 12 12 17 22 12"></polyline>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 14px; color: var(--text-main);">启动全局扫描</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">跨所有配置的下载客户端执行扫描</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; border-color: var(--accent-primary);" id="btn-create-global-scan">立即执行</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">任务ID</th>
+                                    <th style="width: 110px;">模式</th>
+                                    <th style="width: 110px;">触发方式</th>
+                                    <th style="width: 180px;">当前进度</th>
+                                    <th>进度详情</th>
+                                    <th style="width: 160px;">起止时间</th>
+                                    <th style="width: 220px; text-align: center;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-tbody">
+                                <tr>
+                                    <td colspan="7"
+                                        style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                        暂无任务运行历史。
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 配置编辑 tab -->
+            <section class="tab-panel" id="settings">
+                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <h2 class="panel-title">配置中心</h2>
+                        <p class="panel-subtitle">管理扫描周期、下载客户端与通知推送</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-save-config">保存所有配置</button>
+                </div>
+
+                <!-- 配置子分类 Tab 切换 -->
+                <div class="config-tabs-nav">
+                    <button class="config-tab-btn active" data-subtab="cfg-general">基础设置</button>
+                    <button class="config-tab-btn" data-subtab="cfg-services">下载服务</button>
+                    <button class="config-tab-btn" data-subtab="cfg-exclude">排除规则</button>
+                    <button class="config-tab-btn" data-subtab="cfg-notify">推送通知</button>
+                </div>
+
+                <div class="form-section">
+                    <!-- 3.1. 基础设置子面板 -->
+                    <div class="config-tab-panel active" id="cfg-general">
+                        <div class="card">
+                            <div class="card-title" style="margin-bottom:20px;">1. 全局运行配置</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cfg-interval">执行频率 (分钟)</label>
+                                    <input type="number" id="cfg-interval" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cfg-checksize">检测文件大小阈值 (MB)</label>
+                                    <input type="number" id="cfg-checksize" min="0" placeholder="0 表示不限">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cfg-webport">Web 管理端口</label>
+                                    <input type="number" id="cfg-webport" min="1" max="65535">
+                                </div>
+                            </div>
+
+                            <div class="form-row" style="margin-top:20px;">
+                                <div class="form-group switch-group">
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-autoremove">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div>
+                                        <div style="font-weight:600;">启用物理自动删除</div>
+                                        <div style="font-size:12px; color:var(--text-muted);">开启后，检测到的未做种文件将被直接物理删除</div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group switch-group">
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-recyclebin">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div>
+                                        <div style="font-weight:600;">启用安全回收站</div>
+                                        <div style="font-size:12px; color:var(--text-muted);">开启后，删除的文件将移入垃圾箱暂存</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width" id="recyclebin-path-group"
+                                style="margin-top: 20px; display: none;">
+                                <label for="cfg-recyclepath">回收站保存目录</label>
+                                <input type="text" id="cfg-recyclepath" placeholder="例如: ./.trash 或 /data/.trash">
+                            </div>
+
+                            <div class="form-row"
+                                style="margin-top:20px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+                                <div class="form-group switch-group">
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-globalscan">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div>
+                                        <div style="font-weight:600;">启用全局扫描模式</div>
+                                        <div style="font-size:12px; color:var(--text-muted);">开启后，将跨所有下载器核对文件做种状态</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width" id="globalscan-paths-group"
+                                style="margin-top: 20px; display: none;">
+                                <label for="cfg-globalscanpaths">全局扫描目录 (每行一个绝对路径)</label>
+                                <textarea id="cfg-globalscanpaths" rows="3"
+                                    placeholder="例如:&#10;W:\\downloads&#10;/data"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3.2. 下载服务子面板 -->
+                    <div class="config-tab-panel" id="cfg-services">
+                        <div class="card">
+                            <div class="card-title"
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                                <span>下载客户端管理</span>
+                                <button class="btn btn-secondary" style="padding: 6px 12px; font-size:12px;"
+                                    id="btn-add-service">+ 增加服务</button>
+                            </div>
+                            <div class="dynamic-list-container" id="services-list-container">
+                                <!-- JS 动态注入客户端表单卡片 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3.3. 排除规则子面板 -->
+                    <div class="config-tab-panel" id="cfg-exclude">
+                        <div class="card">
+                            <div class="card-title" style="margin-bottom:20px;">排除路径与通配符规则</div>
+                            <div class="form-group full-width">
+                                <label for="cfg-excluded">排除路径规则 (每行一个，支持通配符如 *.tmp 或 **/temp/**)</label>
+                                <textarea id="cfg-excluded" rows="8"
+                                    placeholder="例如:&#10;/data/movies/exclude_folder&#10;*.part&#10;**/recycle/**"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3.4. 推送通知子面板 -->
+                    <div class="config-tab-panel" id="cfg-notify">
+                        <div class="card">
+                            <div class="card-title" style="margin-bottom:20px;">通知推送渠道</div>
+                            <div class="form-group" style="margin-bottom:15px;">
+                                <label for="cfg-notiftype">通知类型</label>
+                                <select id="cfg-notiftype">
+                                    <option value="webhook">Webhook 自定义链接</option>
+                                    <option value="wecom">企业微信 Webhook 机器人</option>
+                                    <option value="email">SMTP 电子邮件</option>
+                                    <option value="none">关闭通知</option>
+                                </select>
+                            </div>
+
+                            <!-- Webhook sub-card -->
+                            <div class="notification-card" id="notif-card-webhook">
+                                <div class="form-group">
+                                    <label for="cfg-webhk-url">Webhook URL</label>
+                                    <input type="text" id="cfg-webhk-url" placeholder="https://example.com/webhook">
+                                </div>
+                            </div>
+
+                            <!-- Wecom sub-card -->
+                            <div class="notification-card" id="notif-card-wecom">
+                                <div class="form-group">
+                                    <label for="cfg-wecom-key">企业微信 Robot Key</label>
+                                    <input type="text" id="cfg-wecom-key"
+                                        placeholder="437e9174-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                </div>
+                            </div>
+
+                            <!-- Email sub-card -->
+                            <div class="notification-card" id="notif-card-email">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="cfg-mail-host">SMTP 服务器</label>
+                                        <input type="text" id="cfg-mail-host" placeholder="smtp.example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cfg-mail-port">SMTP 端口</label>
+                                        <input type="number" id="cfg-mail-port" placeholder="465">
+                                    </div>
+                                </div>
+                                <div class="form-row" style="margin-top:15px;">
+                                    <div class="form-group">
+                                        <label for="cfg-mail-user">发件人账号/邮箱</label>
+                                        <input type="text" id="cfg-mail-user" placeholder="user@example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cfg-mail-pwd">授权密码 / Token</label>
+                                        <div class="password-container">
+                                            <input type="password" id="cfg-mail-pwd" placeholder="••••••••••••••">
+                                            <button class="password-toggle" type="button"
+                                                onclick="togglePasswordVisibility('cfg-mail-pwd')">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cfg-mail-to">收件人邮箱</label>
+                                        <input type="text" id="cfg-mail-to" placeholder="receiver@example.com">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. 实时日志 tab -->
+            <section class="tab-panel" id="logs">
+                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <h2 class="panel-title">实时终端日志</h2>
+                        <p class="panel-subtitle">系统运行日志与网络调用详情</p>
+                    </div>
+                </div>
+
+                <!-- 终端控制头 -->
+                <div class="log-header-bar">
+                    <div class="log-status">
+                        <div class="log-dot online" id="log-status-dot"></div>
+                        <span id="log-status-text">连接状态: 监听中</span>
+                    </div>
+                    <div class="log-filters">
+                        <label style="font-size:13px; color:var(--text-muted);">过滤级别:</label>
+                        <select id="log-level-filter"
+                            style="padding: 4px 8px; font-size:12px; background: rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:6px; color:var(--text-main);">
+                            <option value="ALL">显示全部 (ALL)</option>
+                            <option value="INFO">仅信息 (INFO)</option>
+                            <option value="WARNING">仅警告 (WARNING)</option>
+                            <option value="ERROR">仅错误 (ERROR)</option>
+                        </select>
+                        <label
+                            style="font-size:13px; color:var(--text-muted); display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="log-auto-scroll" checked>
+                            自动滚动
+                        </label>
+                        <button class="btn btn-secondary" style="padding: 4px 12px; font-size:12px;"
+                            id="btn-clear-terminal">清空屏幕</button>
+                    </div>
+                </div>
+
+                <div class="terminal-panel terminal-panel-adjusted" id="log-terminal">
+                    <!-- 流式日志注入 -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast 弹窗组件 -->
+    <div class="toast" id="toast-notify">
+        <div class="loader-spinner" id="toast-spinner" style="display:none;"></div>
+        <span id="toast-text">通知内容</span>
+    </div>
+
+    <!-- 任务创建警告弹窗 -->
+    <div class="modal-overlay" id="warning-modal">
+        <div class="modal">
+            <h3
+                style="font-size:20px; font-weight:700; margin-bottom:15px; color:var(--warning); display:flex; align-items:center; gap:10px;">
+                ⚠️ 任务冲突警告
+            </h3>
+            <p style="font-size:14px; line-height:1.6; color:var(--text-main); margin-bottom:25px;"
+                id="warning-modal-msg">
+                当前已有未完成的扫描任务，建议等待其结束后再创建。是否仍要强制创建新任务？
+            </p>
+            <div style="display:flex; justify-content:flex-end; gap:12px;">
+                <button class="btn btn-secondary" id="btn-warning-cancel">取消</button>
+                <button class="btn btn-primary"
+                    style="background:var(--warning); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);"
+                    id="btn-warning-force">强制创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义确认弹窗 (Custom Glassmorphism Confirm Modal) -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal"
+            style="background: rgba(15, 17, 30, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-color: rgba(139, 92, 246, 0.3);">
+            <h3 style="font-size:20px; font-weight:700; margin-bottom:15px; color:var(--accent-primary); display:flex; align-items:center; gap:10px;"
+                id="confirm-modal-title">
+                ❓ 操作确认
+            </h3>
+            <p style="font-size:14px; line-height:1.6; color:var(--text-main); margin-bottom:25px;"
+                id="confirm-modal-msg">
+                您确定要执行此操作吗？
+            </p>
+            <div style="display:flex; justify-content:flex-end; gap:12px;">
+                <button class="btn btn-secondary" id="btn-confirm-cancel">取消</button>
+                <button class="btn btn-primary" id="btn-confirm-ok">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/index.js"></script>
+</body>
+
+</html>

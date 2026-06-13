@@ -41,5 +41,8 @@ VOLUME ["/app/config", "/data"]
 # 设置入口点脚本
 ENTRYPOINT ["/app/entrypoint.sh"]
 
+# 暴露 Web GUI 端口
+EXPOSE 8000
+
 # 默认启动命令
 CMD ["python", "main.py"]
