@@ -1,0 +1,60 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# =========================
+# 虚拟环境
+# =========================
+.venv/
+venv/
+env/
+
+# =========================
+# 敏感配置文件（含密码、API Key）
+# =========================
+config/config.yaml
+
+# =========================
+# 运行时数据（数据库、日志）
+# =========================
+config/void.db
+config/*.db
+logs/
+*.log
+
+# =========================
+# IDE / 编辑器
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =========================
+# 前端构建与依赖
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/.tmp/
+
+# =========================
+# MoviePilot 运行时数据、缓存与本地依赖（排除）
+# 保留开发的插件源代码：moviepilot/plugins/void_cleaner/
+# =========================
+moviepilot/plugins/cloakbrowser/
+moviepilot/plugins/config/
+moviepilot/plugins/mp_data/
+moviepilot/plugins/local_repo/
+moviepilot/plugins/docker-compose.yaml
+
+# =========================
+# 操作系统
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini

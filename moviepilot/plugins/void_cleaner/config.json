@@ -1,0 +1,44 @@
+[
+  {
+    "name": "enable_auto_remove",
+    "type": "switch",
+    "title": "自动清理未做种文件",
+    "description": "开启后将在扫描完成后自动删除未做种的孤儿文件；关闭则仅在侧边栏和通知中心生成审计报告",
+    "default": false
+  },
+  {
+    "name": "enable_recycle_bin",
+    "type": "switch",
+    "title": "回收站保护模式",
+    "description": "删除时将文件移动到临时回收站目录（推荐开启），防止操作失误",
+    "default": true
+  },
+  {
+    "name": "recycle_bin_path",
+    "type": "text",
+    "title": "回收站存放路径",
+    "description": "仅在开启回收站保护时有效，文件将被安全挪动至此目录",
+    "default": "./.trash"
+  },
+  {
+    "name": "min_size_mb",
+    "type": "number",
+    "title": "文件大小过滤阈值 (MB)",
+    "description": "仅处理大于等于该大小的文件（默认 50MB 可自动保护外挂字幕 .srt/.ass、海报 .nfo 与种子元数据；填 0 表示不限制）",
+    "default": 50
+  },
+  {
+    "name": "exclude_patterns",
+    "type": "textarea",
+    "title": "排除路径与规则黑名单",
+    "description": "每行一个通配符规则或完整路径，匹配的文件将被跳过扫描",
+    "default": "*.nfo\n*.srt\n*.ass\n*.torrent\nlost+found\n.@__thumb\n.recycle\n.qBittorrent\n@eaDir"
+  },
+  {
+    "name": "cron",
+    "type": "text",
+    "title": "定时执行周期 (Cron)",
+    "description": "MoviePilot 后台定时静默自动巡检的 Cron 表达式（默认每天凌晨 3:00 执行）",
+    "default": "0 3 * * *"
+  }
+]

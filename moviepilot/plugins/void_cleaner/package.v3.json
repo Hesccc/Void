@@ -1,0 +1,15 @@
+{
+  "VoidCleaner": {
+    "name": "Void 冗余文件清理",
+    "description": "精准扫描并清理 PT/BT 下载目录中未在任何客户端做种、未硬链接的残留孤儿文件（支持本地及自定义多节点 SSH 远程下载器）",
+    "labels": "文件管理",
+    "version": "1.2.1",
+    "icon": "trash-2.png",
+    "author": "Hescc",
+    "level": 1,
+    "system_version": ">=3.0.0",
+    "history": {
+      "v1.1.0": "升级版本：支持多节点自定义远程 SSH 下载器配置、连通性实时测试、远程文件大小/Inode流式核验与远程安全清理"
+    }
+  }
+}
