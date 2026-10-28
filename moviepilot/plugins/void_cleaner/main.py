@@ -376,7 +376,7 @@ class VoidCleaner(_PluginBase):
 
     plugin_name = "Void 冗余文件清理"
     plugin_desc = "精准扫描并清理下载目录中未在任何客户端做种、未硬链接的残留孤儿文件（支持本地及远程 SSH 下载器）"
-    plugin_version = "1.2.3"
+    plugin_version = "1.2.4"
     plugin_author = "Hescc"
     author_url = "https://github.com/Hesccc/Void"
     plugin_icon = "trash-2.png"
@@ -725,6 +725,59 @@ class VoidCleaner(_PluginBase):
 
         return {"code": 0, "msg": f"成功清理 {len(all_deleted)} 个文件", "deleted": all_deleted}
 
+    @staticmethod
+    def _is_file_seeded(
+        full_path: str,
+        rel_norm: str,
+        orig_rel_norm: str,
+        all_seeded_exact_paths: Set[str],
+        all_seeded_subpaths: Set[str],
+        all_seeded_filenames: Set[str],
+        seeded_root_names: Set[str],
+        active_downloading_files: Set[str],
+    ) -> bool:
+        """多重保险判断文件是否属于当前下载器的做种或下载任务"""
+        # 1. 临时文件标识 (.!qB, .!ut, .part)
+        is_temp = rel_norm.endswith(".!qB") or rel_norm.endswith(".!ut") or rel_norm.endswith(".part")
+        file_base_name = os.path.basename(orig_rel_norm)
+
+        # 2. 如果在下载中白名单里（绝对路径、相对路径或纯文件名）
+        if (
+            orig_rel_norm in active_downloading_files
+            or full_path in active_downloading_files
+            or file_base_name in active_downloading_files
+        ):
+            return True
+
+        # 3. 临时文件保护：如果带 .!qB 且基础文件名在任意已知种子文件清单中
+        if is_temp and file_base_name in all_seeded_filenames:
+            return True
+
+        # 4. 绝对路径完全命中
+        if full_path in all_seeded_exact_paths:
+            return True
+
+        # 5. 相对路径完全命中
+        if orig_rel_norm in all_seeded_subpaths:
+            return True
+
+        # 6. 分类子目录穿透后缀匹配（例如磁盘是 Manually/Douban.../file.mkv，种子是 Douban.../file.mkv）
+        for sp in all_seeded_subpaths:
+            if orig_rel_norm.endswith("/" + sp) or orig_rel_norm.endswith("\\" + sp):
+                return True
+
+        # 7. 种子顶层目录包含保护（处于已知种子文件夹内部，且纯文件名在清单中）
+        path_parts = orig_rel_norm.replace("\\", "/").split("/")
+        for part in path_parts[:-1]:
+            if part in seeded_root_names and file_base_name in all_seeded_filenames:
+                return True
+
+        # 8. 纯文件名命中保护（文件名在当前下载器做种清单中）
+        if file_base_name in all_seeded_filenames:
+            return True
+
+        return False
+
     def scan_and_clean(self):
         """核心扫描比对逻辑：清晰区分 MP 本地容器目录映射 与 远程 SSH 模式"""
         self._scan_state["status"] = "running"
@@ -756,12 +809,11 @@ class VoidCleaner(_PluginBase):
             self._scan_state["last_message"] = f"正在从下载器 [{dl_name}] 读取做种任务与文件树..."
             logger.info(f"[{self.plugin_name}] 扫描下载器: {dl_name} | 模式: {mode} | 节点: {node_name} | 路径: {scan_path}")
 
-            # 1. 从下载器获取做种清单和下载中状态
-            # active_downloading_files: 正在下载状态的文件相对路径集合（即使带 !qB 也绝不误删！）
+            # 多维做种白名单索引
             active_downloading_files: Set[str] = set()
-            # all_seeded_relative_files: 所有处于做种或完成状态的文件相对路径
-            all_seeded_relative_files: Set[str] = set()
-            # seeded_root_names: 单文件种子文件名，或多文件种子根目录名
+            all_seeded_exact_paths: Set[str] = set()
+            all_seeded_subpaths: Set[str] = set()
+            all_seeded_filenames: Set[str] = set()
             seeded_root_names: Set[str] = set()
 
             dl_conf = self._get_downloader_conf(dl_name)
@@ -772,29 +824,48 @@ class VoidCleaner(_PluginBase):
                 for t in torrents:
                     t_hash = t.get("hash")
                     t_name = t.get("name", "")
+                    t_save = unicodedata.normalize("NFC", os.path.normpath(t.get("save_path", ""))) if t.get("save_path") else ""
+                    t_content = unicodedata.normalize("NFC", os.path.normpath(t.get("content_path", ""))) if t.get("content_path") else ""
                     t_state = t.get("state", "").lower()
                     is_downloading = any(st.lower() in t_state for st in DownloaderClient.DOWNLOADING_STATES)
 
                     if t_name:
                         seeded_root_names.add(t_name)
+                    if t_content:
+                        all_seeded_exact_paths.add(t_content)
 
                     files = torrent_files.get(t_hash, [])
                     if files:
                         for f in files:
-                            f_name = f.get("name", "") # e.g. "Folder/file.ts"
+                            f_name = f.get("name", "")
                             if not f_name:
                                 continue
                             norm_f = unicodedata.normalize("NFC", os.path.normpath(f_name))
-                            all_seeded_relative_files.add(norm_f)
+                            all_seeded_subpaths.add(norm_f)
+                            base_fn = os.path.basename(norm_f)
+                            all_seeded_filenames.add(base_fn)
+
+                            if t_save:
+                                abs_p = unicodedata.normalize("NFC", os.path.normpath(os.path.join(t_save, norm_f)))
+                                all_seeded_exact_paths.add(abs_p)
+
                             if is_downloading or (f.get("progress", 0) < 1.0 and f.get("progress", 0) > 0):
                                 active_downloading_files.add(norm_f)
+                                active_downloading_files.add(base_fn)
+                                if t_save:
+                                    active_downloading_files.add(abs_p)
                     else:
                         if t_name:
-                            all_seeded_relative_files.add(t_name)
+                            all_seeded_subpaths.add(t_name)
+                            base_tn = os.path.basename(t_name)
+                            all_seeded_filenames.add(base_tn)
+                            if t_save:
+                                abs_p = unicodedata.normalize("NFC", os.path.normpath(os.path.join(t_save, t_name)))
+                                all_seeded_exact_paths.add(abs_p)
                             if is_downloading:
-                                active_downloading_files.add(t_name)
+                                active_downloading_files.add(base_tn)
 
-            logger.info(f"[{self.plugin_name}] [{dl_name}] 已建立做种白名单: {len(all_seeded_relative_files)} 项，正在下载中保护: {len(active_downloading_files)} 项")
+            logger.info(f"[{self.plugin_name}] [{dl_name}] 已建立多维做种白名单: {len(all_seeded_subpaths)} 个相对路径，{len(all_seeded_filenames)} 个文件名，正在下载中保护: {len(active_downloading_files)} 项")
 
             # 2. 执行目录比对：严格区分 本地容器目录 与 远程 SSH 模式
             if mode == "local":
@@ -827,21 +898,21 @@ class VoidCleaner(_PluginBase):
                             rel_path = os.path.relpath(full_path, scan_path)
                             rel_norm = unicodedata.normalize("NFC", os.path.normpath(rel_path))
 
-                            # 检查 1: 处理 .!qB 临时文件判断
+                            # 处理 .!qB 临时文件判断
                             is_qb_incomplete = rel_norm.endswith(".!qB")
                             orig_rel_norm = rel_norm[:-4] if is_qb_incomplete else rel_norm
 
-                            # 如果原始文件属于【正在下载状态】的种子，绝不删除！
-                            if orig_rel_norm in active_downloading_files:
-                                continue
-
-                            # 如果属于【正常做种/已完成任务】，安全跳过
-                            if orig_rel_norm in all_seeded_relative_files:
-                                continue
-
-                            # 如果是一个顶层文件或处于顶层种子的根目录下
-                            top_dir = rel_norm.split(os.sep)[0] if os.sep in rel_norm else rel_norm
-                            if top_dir in seeded_root_names and orig_rel_norm in all_seeded_relative_files:
+                            # 多维白名单核验：命中任何规则直接放行（做种中、下载中、多级分类子目录等）
+                            if self._is_file_seeded(
+                                full_path=full_path,
+                                rel_norm=rel_norm,
+                                orig_rel_norm=orig_rel_norm,
+                                all_seeded_exact_paths=all_seeded_exact_paths,
+                                all_seeded_subpaths=all_seeded_subpaths,
+                                all_seeded_filenames=all_seeded_filenames,
+                                seeded_root_names=seeded_root_names,
+                                active_downloading_files=active_downloading_files,
+                            ):
                                 continue
 
                             # 到这里说明该文件在下载器中无任何对应任务！判定为孤儿冗余文件
@@ -877,20 +948,21 @@ class VoidCleaner(_PluginBase):
                         rel_path = os.path.relpath(f_path, scan_path)
                         rel_norm = unicodedata.normalize("NFC", os.path.normpath(rel_path))
 
-                        # 检查 1: 处理 .!qB 临时文件判断
+                        # 处理 .!qB 临时文件判断
                         is_qb_incomplete = rel_norm.endswith(".!qB")
                         orig_rel_norm = rel_norm[:-4] if is_qb_incomplete else rel_norm
 
-                        # 正在下载状态保护，绝不误删
-                        if orig_rel_norm in active_downloading_files:
-                            continue
-
-                        # 正常做种保护
-                        if orig_rel_norm in all_seeded_relative_files:
-                            continue
-
-                        top_dir = rel_norm.split(os.sep)[0] if os.sep in rel_norm else rel_norm
-                        if top_dir in seeded_root_names and orig_rel_norm in all_seeded_relative_files:
+                        # 多维白名单核验：命中任何规则直接放行（做种中、下载中、多级分类子目录等）
+                        if self._is_file_seeded(
+                            full_path=f_path,
+                            rel_norm=rel_norm,
+                            orig_rel_norm=orig_rel_norm,
+                            all_seeded_exact_paths=all_seeded_exact_paths,
+                            all_seeded_subpaths=all_seeded_subpaths,
+                            all_seeded_filenames=all_seeded_filenames,
+                            seeded_root_names=seeded_root_names,
+                            active_downloading_files=active_downloading_files,
+                        ):
                             continue
 
                         unseeded_results.append({
