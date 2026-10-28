@@ -376,7 +376,7 @@ class VoidCleaner(_PluginBase):
 
     plugin_name = "Void 冗余文件清理"
     plugin_desc = "精准扫描并清理下载目录中未在任何客户端做种、未硬链接的残留孤儿文件（支持本地及远程 SSH 下载器）"
-    plugin_version = "1.2.5"
+    plugin_version = "1.2.6"
     plugin_author = "Hescc"
     author_url = "https://github.com/Hesccc/Void"
     plugin_icon = "trash-2.png"

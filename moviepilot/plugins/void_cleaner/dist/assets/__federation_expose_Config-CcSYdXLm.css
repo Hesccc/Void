@@ -1,0 +1,91 @@
+
+.void-config-wrap[data-v-ec338e9b] {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* 顶部 Tab 导航条容器：融入宿主背景，无突兀灰块 */
+.void-tabs-nav-bar[data-v-ec338e9b] {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(var(--v-border-color, 128, 128, 128), var(--v-border-opacity, 0.12));
+  background: transparent;
+}
+.void-nav-container[data-v-ec338e9b] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 原生质感 Tab 药丸组件：自适应宿主明暗主题 */
+.void-nav-tab[data-v-ec338e9b] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  padding: 0 16px !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(var(--v-border-color, 128, 128, 128), var(--v-border-opacity, 0.16)) !important;
+  background: rgba(var(--v-theme-on-surface, 128, 128, 128), 0.04) !important;
+  color: rgba(var(--v-theme-on-surface, 0, 0, 0), 0.72) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  outline: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+.void-nav-tab[data-v-ec338e9b]:hover {
+  color: rgb(var(--v-theme-on-surface, 0, 0, 0)) !important;
+  background: rgba(var(--v-theme-on-surface, 128, 128, 128), 0.08) !important;
+  border-color: rgba(var(--v-border-color, 128, 128, 128), 0.28) !important;
+}
+
+/* 激活状态：采用 MoviePilot 原生 Primary 主题色及 On-Primary 前景色 */
+.void-nav-tab--active[data-v-ec338e9b] {
+  color: rgb(var(--v-theme-on-primary, 255, 255, 255)) !important;
+  background: rgb(var(--v-theme-primary, 107, 70, 193)) !important;
+  border-color: rgb(var(--v-theme-primary, 107, 70, 193)) !important;
+  box-shadow: 0 2px 8px rgba(var(--v-theme-primary, 107, 70, 193), 0.35) !important;
+}
+.void-tab-icon[data-v-ec338e9b] {
+  opacity: 0.9 !important;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+.void-tab-title[data-v-ec338e9b] {
+  line-height: 1 !important;
+}
+
+/* 适配主题的角标 */
+.void-tab-badge[data-v-ec338e9b] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  padding: 0 5px !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  border-radius: 9999px !important;
+  background: rgba(var(--v-theme-on-surface, 128, 128, 128), 0.16) !important;
+  color: inherit !important;
+  box-sizing: border-box !important;
+}
+.void-nav-tab--active .void-tab-badge[data-v-ec338e9b] {
+  background: rgba(var(--v-theme-on-primary, 255, 255, 255), 0.28) !important;
+  color: rgb(var(--v-theme-on-primary, 255, 255, 255)) !important;
+}
+.font-monospace[data-v-ec338e9b] {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}

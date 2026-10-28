@@ -618,11 +618,11 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
-/* 顶部 Tab 导航条容器 */
+/* 顶部 Tab 导航条容器：融入宿主背景，无突兀灰块 */
 .void-tabs-nav-bar {
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(var(--v-border-color, 128, 128, 128), var(--v-border-opacity, 0.12));
+  background: transparent;
 }
 
 .void-nav-container {
@@ -632,7 +632,7 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
-/* 纯净无污染的独立 Tab 胶囊项 */
+/* 原生质感 Tab 药丸组件：自适应宿主明暗主题 */
 .void-nav-tab {
   display: inline-flex !important;
   align-items: center !important;
@@ -644,9 +644,9 @@ onMounted(async () => {
   padding: 0 16px !important;
   margin: 0 !important;
   border-radius: 8px !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background: rgba(255, 255, 255, 0.03) !important;
-  color: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(var(--v-border-color, 128, 128, 128), var(--v-border-opacity, 0.16)) !important;
+  background: rgba(var(--v-theme-on-surface, 128, 128, 128), 0.04) !important;
+  color: rgba(var(--v-theme-on-surface, 0, 0, 0), 0.72) !important;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
   line-height: 1 !important;
@@ -660,17 +660,17 @@ onMounted(async () => {
 }
 
 .void-nav-tab:hover {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: rgb(var(--v-theme-on-surface, 0, 0, 0)) !important;
+  background: rgba(var(--v-theme-on-surface, 128, 128, 128), 0.08) !important;
+  border-color: rgba(var(--v-border-color, 128, 128, 128), 0.28) !important;
 }
 
-/* 激活状态的高亮紫底药丸：外边框尺寸与未激活项完全 1:1 绝对一致 */
+/* 激活状态：采用 MoviePilot 原生 Primary 主题色及 On-Primary 前景色 */
 .void-nav-tab--active {
-  color: #fff !important;
-  background: #8b5cf6 !important;
-  border-color: #8b5cf6 !important;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4) !important;
+  color: rgb(var(--v-theme-on-primary, 255, 255, 255)) !important;
+  background: rgb(var(--v-theme-primary, 107, 70, 193)) !important;
+  border-color: rgb(var(--v-theme-primary, 107, 70, 193)) !important;
+  box-shadow: 0 2px 8px rgba(var(--v-theme-primary, 107, 70, 193), 0.35) !important;
 }
 
 .void-tab-icon {
@@ -684,7 +684,7 @@ onMounted(async () => {
   line-height: 1 !important;
 }
 
-/* 自研角标 */
+/* 适配主题的角标 */
 .void-tab-badge {
   display: inline-flex !important;
   align-items: center !important;
@@ -696,13 +696,14 @@ onMounted(async () => {
   font-weight: 700 !important;
   line-height: 1 !important;
   border-radius: 9999px !important;
-  background: rgba(255, 255, 255, 0.25) !important;
-  color: #fff !important;
+  background: rgba(var(--v-theme-on-surface, 128, 128, 128), 0.16) !important;
+  color: inherit !important;
   box-sizing: border-box !important;
 }
 
 .void-nav-tab--active .void-tab-badge {
-  background: rgba(0, 0, 0, 0.3) !important;
+  background: rgba(var(--v-theme-on-primary, 255, 255, 255), 0.28) !important;
+  color: rgb(var(--v-theme-on-primary, 255, 255, 255)) !important;
 }
 
 .font-monospace {
