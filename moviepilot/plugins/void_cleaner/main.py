@@ -376,7 +376,7 @@ class VoidCleaner(_PluginBase):
 
     plugin_name = "Void 冗余文件清理"
     plugin_desc = "精准扫描并清理下载目录中未在任何客户端做种、未硬链接的残留孤儿文件（支持本地及远程 SSH 下载器）"
-    plugin_version = "1.2.4"
+    plugin_version = "1.2.5"
     plugin_author = "Hescc"
     author_url = "https://github.com/Hesccc/Void"
     plugin_icon = "trash-2.png"
@@ -581,11 +581,30 @@ class VoidCleaner(_PluginBase):
                 "endpoint": self.api_test_ssh,
                 "auth": "bear",
                 "summary": "测试指定 SSH 节点的连通性"
+            },
+            {
+                "path": "/clear_history",
+                "methods": ["POST"],
+                "endpoint": self.api_clear_history,
+                "auth": "bear",
+                "summary": "清空历史扫描记录"
             }
         ]
 
     def api_get_status(self) -> Dict[str, Any]:
         return {"code": 0, "msg": "ok", "data": self._scan_state}
+
+    def api_clear_history(self) -> Dict[str, Any]:
+        """重置并清空待清理冗余文件列表"""
+        self._scan_state["unseeded_files"] = []
+        self._scan_state["unseeded_count"] = 0
+        self._scan_state["unseeded_size_mb"] = 0.0
+        self._scan_state["last_message"] = "历史扫描记录已清空"
+        try:
+            self.save_data("last_scan_state", self._scan_state)
+        except Exception:
+            pass
+        return {"code": 0, "msg": "已清空历史扫描记录", "data": self._scan_state}
 
     def api_get_config(self) -> Dict[str, Any]:
         return {"code": 0, "msg": "ok", "data": self.get_current_config()}

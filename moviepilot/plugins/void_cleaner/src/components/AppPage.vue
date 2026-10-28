@@ -15,6 +15,7 @@ const base = computed(() => `plugin/${props.pluginId || 'VoidCleaner'}`)
 const loading = ref(false)
 const scanning = ref(false)
 const deleting = ref(false)
+const clearingHistory = ref(false)
 const message = ref('')
 const error = ref('')
 const searchQuery = ref('')
@@ -212,6 +213,23 @@ async function deleteFiles(files) {
 
 function deleteSelected() {
   deleteFiles(Array.from(selectedPaths.value))
+}
+
+async function clearHistory() {
+  if (!rawFiles.value.length) return
+  if (!confirm("确定要清空历史扫描记录吗？\n（说明：这不会删除您磁盘上的任何文件，仅重置并清空当前的审计结果列表）")) return
+  clearingHistory.value = true
+  error.value = ''
+  try {
+    const data = unwrap(await props.api.post(`${base.value}/clear_history`, {}))
+    message.value = data?.msg || '已成功清空扫描记录'
+    selectedPaths.value = new Set()
+    await loadStatus()
+  } catch (err) {
+    error.value = `清空记录失败：${errorText(err)}`
+  } finally {
+    clearingHistory.value = false
+  }
 }
 
 function startPolling() {
@@ -431,6 +449,18 @@ onUnmounted(() => {
               @click="selectAllGlobally"
             >
               全选 ({{ filteredFiles.length }})
+            </VBtn>
+            <VBtn
+              v-if="rawFiles.length > 0 && selectedPaths.size === 0"
+              variant="outlined"
+              color="secondary"
+              size="small"
+              prepend-icon="mdi-broom"
+              title="清空并重置当前的扫描结果列表（不删除真实文件）"
+              :loading="clearingHistory"
+              @click="clearHistory"
+            >
+              清空记录
             </VBtn>
             <VBtn
               color="primary"

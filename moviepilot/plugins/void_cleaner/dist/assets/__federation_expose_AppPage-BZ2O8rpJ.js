@@ -72,6 +72,7 @@ const base = computed(() => `plugin/${props.pluginId || 'VoidCleaner'}`);
 const loading = ref(false);
 const scanning = ref(false);
 const deleting = ref(false);
+const clearingHistory = ref(false);
 const message = ref('');
 const error = ref('');
 const searchQuery = ref('');
@@ -269,6 +270,23 @@ async function deleteFiles(files) {
 
 function deleteSelected() {
   deleteFiles(Array.from(selectedPaths.value));
+}
+
+async function clearHistory() {
+  if (!rawFiles.value.length) return
+  if (!confirm("确定要清空历史扫描记录吗？\n（说明：这不会删除您磁盘上的任何文件，仅重置并清空当前的审计结果列表）")) return
+  clearingHistory.value = true;
+  error.value = '';
+  try {
+    const data = unwrap(await props.api.post(`${base.value}/clear_history`, {}));
+    message.value = data?.msg || '已成功清空扫描记录';
+    selectedPaths.value = new Set();
+    await loadStatus();
+  } catch (err) {
+    error.value = `清空记录失败：${errorText(err)}`;
+  } finally {
+    clearingHistory.value = false;
+  }
 }
 
 function startPolling() {
@@ -676,6 +694,23 @@ return (_ctx, _cache) => {
                           _: 1
                         }))
                       : _createCommentVNode("", true),
+                    (rawFiles.value.length > 0 && selectedPaths.value.size === 0)
+                      ? (_openBlock(), _createBlock(_component_VBtn, {
+                          key: 3,
+                          variant: "outlined",
+                          color: "secondary",
+                          size: "small",
+                          "prepend-icon": "mdi-broom",
+                          title: "清空并重置当前的扫描结果列表（不删除真实文件）",
+                          loading: clearingHistory.value,
+                          onClick: clearHistory
+                        }, {
+                          default: _withCtx(() => [...(_cache[24] || (_cache[24] = [
+                            _createTextVNode(" 清空记录 ", -1)
+                          ]))]),
+                          _: 1
+                        }, 8, ["loading"]))
+                      : _createCommentVNode("", true),
                     _createVNode(_component_VBtn, {
                       color: "primary",
                       size: "small",
@@ -716,17 +751,17 @@ return (_ctx, _cache) => {
                     "onUpdate:modelValue": _cache[7] || (_cache[7] = $event => ((allPageSelected).value = $event))
                   }, null, 8, ["modelValue"])
                 ]),
-                _cache[24] || (_cache[24] = _createElementVNode("th", { style: {"width":"170px"} }, "所属节点 / 下载器", -1)),
-                _cache[25] || (_cache[25] = _createElementVNode("th", null, "文件名称 / 物理位置", -1)),
-                _cache[26] || (_cache[26] = _createElementVNode("th", {
+                _cache[25] || (_cache[25] = _createElementVNode("th", { style: {"width":"170px"} }, "所属节点 / 下载器", -1)),
+                _cache[26] || (_cache[26] = _createElementVNode("th", null, "文件名称 / 物理位置", -1)),
+                _cache[27] || (_cache[27] = _createElementVNode("th", {
                   style: {"width":"130px"},
                   class: "text-right"
                 }, "占用容量", -1)),
-                _cache[27] || (_cache[27] = _createElementVNode("th", {
+                _cache[28] || (_cache[28] = _createElementVNode("th", {
                   style: {"width":"170px"},
                   class: "text-center"
                 }, "修改时间", -1)),
-                _cache[28] || (_cache[28] = _createElementVNode("th", {
+                _cache[29] || (_cache[29] = _createElementVNode("th", {
                   style: {"width":"90px"},
                   class: "text-center"
                 }, "操作", -1))
@@ -742,9 +777,9 @@ return (_ctx, _cache) => {
                         size: "48",
                         class: "mb-2"
                       }),
-                      _cache[29] || (_cache[29] = _createElementVNode("br", null, null, -1)),
-                      _cache[30] || (_cache[30] = _createElementVNode("div", { class: "text-subtitle-1 font-weight-bold mt-1" }, "本地与远程下载目录整洁", -1)),
-                      _cache[31] || (_cache[31] = _createElementVNode("div", { class: "text-caption" }, "未发现任何未做种且未建立硬链接的孤儿文件", -1))
+                      _cache[30] || (_cache[30] = _createElementVNode("br", null, null, -1)),
+                      _cache[31] || (_cache[31] = _createElementVNode("div", { class: "text-subtitle-1 font-weight-bold mt-1" }, "本地与远程下载目录整洁", -1)),
+                      _cache[32] || (_cache[32] = _createElementVNode("div", { class: "text-caption" }, "未发现任何未做种且未建立硬链接的孤儿文件", -1))
                     ])
                   ]))
                 : _createCommentVNode("", true),
@@ -804,7 +839,7 @@ return (_ctx, _cache) => {
                       "prepend-icon": "mdi-trash-can-outline",
                       onClick: $event => (deleteFiles([item.path]))
                     }, {
-                      default: _withCtx(() => [...(_cache[32] || (_cache[32] = [
+                      default: _withCtx(() => [...(_cache[33] || (_cache[33] = [
                         _createTextVNode(" 清理 ", -1)
                       ]))]),
                       _: 1
@@ -839,6 +874,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-462d72be"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-6abd3401"]]);
 
 export { AppPage as default };
