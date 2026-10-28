@@ -34,6 +34,7 @@ const localConfig = ref({
 
 // 系统下载器列表
 const systemDownloaders = ref([])
+const systemDirectories = ref([])
 
 // 对话框：编辑/新增 SSH 节点
 const nodeDialog = ref(false)
@@ -75,6 +76,7 @@ async function loadSystemDownloaders() {
     const res = unwrap(await props.api.get(`${base.value}/downloaders`))
     if (res && res.downloaders) {
       systemDownloaders.value = res.downloaders
+      systemDirectories.value = res.system_directories || []
 
       // 初始化 mapping
       const existingMap = new Map((localConfig.value.downloader_mappings || []).map(m => [m.downloader_name, m]))
@@ -404,12 +406,14 @@ onMounted(async () => {
                   <span v-else class="text-caption text-medium-emphasis">无需远程 SSH</span>
                 </td>
                 <td>
-                  <VTextField
+                  <VCombobox
                     v-model="item.download_path"
+                    :items="item.mode === 'ssh' ? [] : systemDirectories"
                     density="compact"
                     variant="outlined"
-                    :placeholder="item.mode === 'ssh' ? '取 SSH 节点默认远程路径' : '取 MP DOWNLOAD_PATH'"
+                    :placeholder="item.mode === 'ssh' ? '取 SSH 节点默认远程路径' : (systemDirectories.length ? '留空默认: ' + systemDirectories.join(', ') : '继承 MP 系统目录设置')"
                     hide-details
+                    clearable
                   />
                 </td>
               </tr>

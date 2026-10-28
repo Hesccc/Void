@@ -187,11 +187,13 @@ const allPageSelected = computed({
     return paginatedFiles.value.every(f => selectedPaths.value.has(f.path))
   },
   set(val) {
+    const next = new Set(selectedPaths.value);
     if (val) {
-      paginatedFiles.value.forEach(f => selectedPaths.value.add(f.path));
+      paginatedFiles.value.forEach(f => next.add(f.path));
     } else {
-      paginatedFiles.value.forEach(f => selectedPaths.value.delete(f.path));
+      paginatedFiles.value.forEach(f => next.delete(f.path));
     }
+    selectedPaths.value = next;
   }
 });
 
@@ -200,15 +202,17 @@ function selectAllGlobally() {
 }
 
 function clearSelection() {
-  selectedPaths.value.clear();
+  selectedPaths.value = new Set();
 }
 
 function toggleSelect(path) {
-  if (selectedPaths.value.has(path)) {
-    selectedPaths.value.delete(path);
+  const next = new Set(selectedPaths.value);
+  if (next.has(path)) {
+    next.delete(path);
   } else {
-    selectedPaths.value.add(path);
+    next.add(path);
   }
+  selectedPaths.value = next;
 }
 
 async function loadStatus() {
@@ -549,6 +553,7 @@ return (_ctx, _cache) => {
               default: _withCtx(() => [
                 _createVNode(_component_VCol, {
                   cols: "12",
+                  sm: "6",
                   md: "3"
                 }, {
                   default: _withCtx(() => [
@@ -566,6 +571,7 @@ return (_ctx, _cache) => {
                 }),
                 _createVNode(_component_VCol, {
                   cols: "12",
+                  sm: "6",
                   md: "3"
                 }, {
                   default: _withCtx(() => [
@@ -584,6 +590,7 @@ return (_ctx, _cache) => {
                 }),
                 _createVNode(_component_VCol, {
                   cols: "6",
+                  sm: "6",
                   md: "2"
                 }, {
                   default: _withCtx(() => [
@@ -606,6 +613,7 @@ return (_ctx, _cache) => {
                 }),
                 _createVNode(_component_VCol, {
                   cols: "6",
+                  sm: "6",
                   md: "1"
                 }, {
                   default: _withCtx(() => [
@@ -624,7 +632,7 @@ return (_ctx, _cache) => {
                 _createVNode(_component_VCol, {
                   cols: "12",
                   md: "3",
-                  class: "d-flex justify-end align-center gap-2"
+                  class: "d-flex justify-end align-center flex-wrap gap-2"
                 }, {
                   default: _withCtx(() => [
                     (selectedPaths.value.size > 0)
@@ -831,6 +839,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-e44c9d54"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-462d72be"]]);
 
 export { AppPage as default };

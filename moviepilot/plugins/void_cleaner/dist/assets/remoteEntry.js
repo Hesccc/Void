@@ -1,15 +1,15 @@
 const currentImports = {};
       const exportSet = new Set(['Module', '__esModule', 'default', '_export_sfc']);
       let moduleMap = {
-"./Page":()=>{
-      dynamicLoadingCss(["__federation_expose_AppPage-Bru4TwY9.css"], false, './Page');
-      return __federation_import('./__federation_expose_Page-D_NEBivU.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},
-"./Config":()=>{
-      dynamicLoadingCss(["__federation_expose_Config-DCvPomN4.css"], false, './Config');
-      return __federation_import('./__federation_expose_Config-PP4dj0hV.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},
 "./AppPage":()=>{
-      dynamicLoadingCss(["__federation_expose_AppPage-Bru4TwY9.css"], false, './AppPage');
-      return __federation_import('./__federation_expose_AppPage-CZmFb--J.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},};
+      dynamicLoadingCss(["__federation_expose_AppPage-BLceBUcf.css"], false, './AppPage');
+      return __federation_import('./__federation_expose_AppPage-BXwKceAc.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},
+"./Page":()=>{
+      dynamicLoadingCss(["__federation_expose_AppPage-BLceBUcf.css"], false, './Page');
+      return __federation_import('./__federation_expose_Page-DCd6oe9L.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},
+"./Config":()=>{
+      dynamicLoadingCss(["__federation_expose_Config-Ckl_8sQx.css"], false, './Config');
+      return __federation_import('./__federation_expose_Config-DSp4nzmU.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},};
       const seen = {};
       const dynamicLoadingCss = (cssFilePaths, dontAppendStylesToHead, exposeItemName) => {
         const metaUrl = import.meta.url;

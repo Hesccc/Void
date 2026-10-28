@@ -91,6 +91,7 @@ const localConfig = ref({
 
 // 系统下载器列表
 const systemDownloaders = ref([]);
+const systemDirectories = ref([]);
 
 // 对话框：编辑/新增 SSH 节点
 const nodeDialog = ref(false);
@@ -132,6 +133,7 @@ async function loadSystemDownloaders() {
     const res = unwrap(await props.api.get(`${base.value}/downloaders`));
     if (res && res.downloaders) {
       systemDownloaders.value = res.downloaders;
+      systemDirectories.value = res.system_directories || [];
 
       // 初始化 mapping
       const existingMap = new Map((localConfig.value.downloader_mappings || []).map(m => [m.downloader_name, m]));
@@ -273,6 +275,7 @@ return (_ctx, _cache) => {
   const _component_VAlert = _resolveComponent("VAlert");
   const _component_VCheckboxBtn = _resolveComponent("VCheckboxBtn");
   const _component_VSelect = _resolveComponent("VSelect");
+  const _component_VCombobox = _resolveComponent("VCombobox");
   const _component_VTable = _resolveComponent("VTable");
   const _component_VCard = _resolveComponent("VCard");
   const _component_VBtn = _resolveComponent("VBtn");
@@ -584,14 +587,16 @@ return (_ctx, _cache) => {
                           : (_openBlock(), _createElementBlock("span", _hoisted_11, "无需远程 SSH"))
                       ]),
                       _createElementVNode("td", null, [
-                        _createVNode(_component_VTextField, {
+                        _createVNode(_component_VCombobox, {
                           modelValue: item.download_path,
                           "onUpdate:modelValue": $event => ((item.download_path) = $event),
+                          items: item.mode === 'ssh' ? [] : systemDirectories.value,
                           density: "compact",
                           variant: "outlined",
-                          placeholder: item.mode === 'ssh' ? '取 SSH 节点默认远程路径' : '取 MP DOWNLOAD_PATH',
-                          "hide-details": ""
-                        }, null, 8, ["modelValue", "onUpdate:modelValue", "placeholder"])
+                          placeholder: item.mode === 'ssh' ? '取 SSH 节点默认远程路径' : (systemDirectories.value.length ? '留空默认: ' + systemDirectories.value.join(', ') : '继承 MP 系统目录设置'),
+                          "hide-details": "",
+                          clearable: ""
+                        }, null, 8, ["modelValue", "onUpdate:modelValue", "items", "placeholder"])
                       ])
                     ]))
                   }), 128))
@@ -966,6 +971,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-a6f874c9"]]);
+const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-828d0a7e"]]);
 
 export { Config as default };

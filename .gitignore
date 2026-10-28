@@ -41,6 +41,7 @@ logs/
 frontend/node_modules/
 frontend/dist/
 frontend/.tmp/
+moviepilot/plugins/void_cleaner/node_modules/
 
 # =========================
 # MoviePilot 运行时数据、缓存与本地依赖（排除）
@@ -58,3 +59,8 @@ moviepilot/plugins/docker-compose.yaml
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# =========================
+# 外部克隆的子项目仓库
+# =========================
+MoviePilot-Plugins/

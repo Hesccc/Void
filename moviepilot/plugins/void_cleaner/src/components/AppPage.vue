@@ -130,11 +130,13 @@ const allPageSelected = computed({
     return paginatedFiles.value.every(f => selectedPaths.value.has(f.path))
   },
   set(val) {
+    const next = new Set(selectedPaths.value)
     if (val) {
-      paginatedFiles.value.forEach(f => selectedPaths.value.add(f.path))
+      paginatedFiles.value.forEach(f => next.add(f.path))
     } else {
-      paginatedFiles.value.forEach(f => selectedPaths.value.delete(f.path))
+      paginatedFiles.value.forEach(f => next.delete(f.path))
     }
+    selectedPaths.value = next
   }
 })
 
@@ -143,15 +145,17 @@ function selectAllGlobally() {
 }
 
 function clearSelection() {
-  selectedPaths.value.clear()
+  selectedPaths.value = new Set()
 }
 
 function toggleSelect(path) {
-  if (selectedPaths.value.has(path)) {
-    selectedPaths.value.delete(path)
+  const next = new Set(selectedPaths.value)
+  if (next.has(path)) {
+    next.delete(path)
   } else {
-    selectedPaths.value.add(path)
+    next.add(path)
   }
+  selectedPaths.value = next
 }
 
 async function loadStatus() {
@@ -355,7 +359,7 @@ onUnmounted(() => {
     <VCard variant="outlined" class="mb-3">
       <VCardText class="py-2">
         <VRow dense align="center">
-          <VCol cols="12" md="3">
+          <VCol cols="12" sm="6" md="3">
             <VSelect
               v-model="selectedNodeFilter"
               :items="nodeFilterOptions"
@@ -365,7 +369,7 @@ onUnmounted(() => {
               hide-details
             />
           </VCol>
-          <VCol cols="12" md="3">
+          <VCol cols="12" sm="6" md="3">
             <VTextField
               v-model="searchQuery"
               density="compact"
@@ -376,7 +380,7 @@ onUnmounted(() => {
               clearable
             />
           </VCol>
-          <VCol cols="6" md="2">
+          <VCol cols="6" sm="6" md="2">
             <VSelect
               v-model="sortOrder"
               :items="[
@@ -391,7 +395,7 @@ onUnmounted(() => {
               hide-details
             />
           </VCol>
-          <VCol cols="6" md="1">
+          <VCol cols="6" sm="6" md="1">
             <VSelect
               v-model="itemsPerPage"
               :items="[10, 15, 25, 50, 100]"
@@ -401,7 +405,7 @@ onUnmounted(() => {
               hide-details
             />
           </VCol>
-          <VCol cols="12" md="3" class="d-flex justify-end align-center gap-2">
+          <VCol cols="12" md="3" class="d-flex justify-end align-center flex-wrap gap-2">
             <VBtn
               v-if="selectedPaths.size > 0"
               color="error"
